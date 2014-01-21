@@ -4,7 +4,7 @@
   <title><![CDATA[Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-21T17:07:20-06:00</updated>
+  <updated>2014-01-21T17:08:25-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -12,5 +12,14 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Hello World]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/21/hello-world/"/>
+    <updated>2014-01-21T17:08:20-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/21/hello-world</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
 </feed>
