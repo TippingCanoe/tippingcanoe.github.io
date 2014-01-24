@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Benchmarking Android Networking Libraries - Part 2: Installing Libraries - Up The Creek</title>
+  <meta name="author" content="Tipping Canoe">
+
+  
+  <meta name="description" content="Preamble Where we last left our heroes, we&rsquo;d setup a testbed using Laravel 4 to compare the speeds Android networking libraries. This time &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Up The Creek" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Up The Creek</a></h1>
+  
+    <h2>Without a <code>Paddle();</code></h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:upthecreek.tippingcanoe.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Benchmarking Android Networking Libraries - Part 2: Installing Libraries</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-24T12:22:20-06:00" pubdate data-updated="true">Jan 24<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Preamble</h2>
+
+<p>Where we <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">last left our heroes</a>, we&rsquo;d setup a <a href="http://github.com/TippingCanoe/rest-api-testbed">testbed</a> using <a href="http://www.laravel.com">Laravel 4</a> to compare the speeds Android networking libraries. This time around, we&rsquo;re going to look at creating an Android Application to test these libraries out.</p>
+
+<h2>Creating the Application</h2>
+
+<p>As mentioned in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">part one</a> of this discussion, using modern tools to build our Applications has become a big focus for us at <a href="http://tippingcanoe.com/">Tipping Canoe</a>. The new hotness of <a href="http://tools.android.com/tech-docs/new-build-system">Gradle</a> and <a href="http://developer.android.com/sdk/installing/studio.html">Android Studio</a> have replaced the old bustedness of Eclipse and ANT for us, so having libraries available in a format that gels with proper dependency management is a big win and, in our opinion, a litmus test for the quality of a library.</p>
+
+<p>We&rsquo;ll use the Android Studio new project wizard to create our project.</p>
+
+<p><img src="http://upthecreek.tippingcanoe.com/assets/new_project.png" alt="Android Studio new Application" /></p>
+
+<p>Once the project has booted, a majority of the work will be done in the <code>build.gradle</code> file.<br/>
+<em>Note: There are actually two <code>build.gradle</code> files, one in the outer project and one in the inner module for our Application. For the moment, the inner one is where we will be concentrating. However, at the time of writing a new update to Android Studio was pushed which introduced version <code>0.8</code> of the gradle plugin, which may have changed this.</em></p>
+
+<p><img src="http://upthecreek.tippingcanoe.com/assets/new_project_done.png" alt="Android Studio new Application" /></p>
+
+<p>The one improvement that I&rsquo;d suggest making is changing the <code>.gitignore</code> file. If you&rsquo;re working in a team all using Android Studio, there are actually a few settings in projects that you might want to share between your developers. Most <code>.gitignore</code> files will have you ignoring the entire <code>/.idea</code> folder, so you&rsquo;ll lose things like code style settings, which, in our mind, make sense to enforce and share amongst your team.</p>
+
+<div><script src='https://gist.github.com/8605514.js'></script>
+<noscript><pre><code># Built application files
+/*/build/
+
+# Crashlytics configuations
+com_crashlytics_export_strings.xml
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Gradle generated files
+.gradle/
+
+# Signing files
+.signing/
+
+# User-specific configurations
+.idea/libraries/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+*.iml
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db</code></pre></noscript></div>
+
+
+<h3>Installing Retrofit</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.squareup.retrofit:retrofit:1.3.0&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Installing Volley</h3>
+
+<p><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> isn&rsquo;t available in Maven at the time of writing. In fact, finding a download for it at all is a little tricky. For shame, Google. Thankfully <a href="https://github.com/vinc3m1">Vince Mi</a> has done us a great service in wrapping Volley in Maven repository he calls <a href="https://github.com/ark/ark">Ark</a>.</p>
+
+<p>So, we just need to add Ark.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">repositories</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">mavenCentral</span><span class="o">()</span>
+</span><span class='line'>  <span class="n">maven</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">url</span> <span class="s1">&#39;https://raw.github.com/ark/ark/master/releases/&#39;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="n">maven</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">url</span> <span class="s1">&#39;https://raw.github.com/ark/ark/master/snapshots/&#39;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And then add Volley.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.frameworks:volley:master-SNAPSHOT&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Installing ion</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.koushikdutta.ion:ion:1.2.1&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Installing Robospice</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.octo.android.robospice:robospice:1.4.2&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Installing Picasso</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.squareup.picasso:picasso:2.1.1&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Thoughts</h2>
+
+<p>Two things came up as a result of this,</p>
+
+<p>First, it&rsquo;s interesting to note that the only library that fails at being dead simple to install and manage is the &ldquo;offical&rdquo; one provided by Google. As tempting as it is to assume that Google&rsquo;s solutions are always going to be the best, there&rsquo;s somewhat of a track record of projects being abandonded without warning to developers using or relying on them. The optimist would say that Google knows Gradle/Maven are going to be replaced by some secret project in the near future. The pessimest would say that this is a sign that Volley might not be a long-term supported project.</p>
+
+<p>Second, this may be an extremely temporal thing that only exists at the time of writing, but Robo Spice generated an error while compiling;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./gradlew build
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>UNEXPECTED TOP-LEVEL EXCEPTION:
+</span><span class='line'>com.android.dex.DexException: Multiple dex files define Landroid/support/v4/accessibilityservice/
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What the heck? From the looks of that error message, something in Robo Spice is trying to include something that&rsquo;s conflicting with our version of the Android support library.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./gradlew -q dependencies networkLibraryTest:dependencies
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>_debugApk
+</span><span class='line'>+--- com.android.support:appcompat-v7:+ -&gt; 19.0.1
+</span><span class='line'>|    <span class="se">\-</span>-- com.android.support:support-v4:19.0.1
+</span><span class='line'>+--- com.squareup.retrofit:retrofit:1.3.0
+</span><span class='line'>|    <span class="se">\-</span>-- com.google.code.gson:gson:2.2.4
+</span><span class='line'>+--- com.android.frameworks:volley:master-SNAPSHOT
+</span><span class='line'>+--- com.koushikdutta.ion:ion:1.2.1
+</span><span class='line'>|    +--- com.google.code.gson:gson:2.2.4
+</span><span class='line'>|    <span class="se">\-</span>-- com.koushikdutta.async:androidasync:1.2.1
+</span><span class='line'>+--- com.octo.android.robospice:robospice:1.4.2
+</span><span class='line'>|    <span class="se">\-</span>-- com.octo.android.robospice:robospice-cache:1.4.1
+</span><span class='line'>|         +--- org.apache.commons:commons-lang3:3.1
+</span><span class='line'>|         +--- org.apache.commons:commons-io:1.3.2
+</span><span class='line'>|         |    <span class="se">\-</span>-- commons-io:commons-io:1.3.2
+</span><span class='line'>|         <span class="se">\-</span>-- com.google.android:support-v4:r7
+</span><span class='line'><span class="se">\-</span>-- com.squareup.picasso:picasso:2.1.1
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The solution was to top it from attempting to compile that module.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">compile</span> <span class="o">(</span><span class="s1">&#39;com.octo.android.robospice:robospice:1.4.2&#39;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">exclude</span> <span class="nl">module:</span> <span class="s1">&#39;support-v4&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Scorecard</h2>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th> Library   </th>
+<th align="right"> Score </th>
+<th> Notes                                     </th>
+<th align="right"> Running Tally </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td> Retrofit  </td>
+<td align="right">    +1 </td>
+<td>                                           </td>
+<td align="right">             1 |</td>
+</tr>
+<tr>
+<td></td>
+<td> Volley    </td>
+<td align="right">    -1 </td>
+<td> Not available in modern dependency tools. </td>
+<td align="right">            -1 |</td>
+</tr>
+<tr>
+<td></td>
+<td> ion       </td>
+<td align="right">    +1 </td>
+<td>                                           </td>
+<td align="right">             1 |</td>
+</tr>
+<tr>
+<td></td>
+<td> Robospice </td>
+<td align="right">     0 </td>
+<td>                                           </td>
+<td align="right">             0 |</td>
+</tr>
+<tr>
+<td></td>
+<td> Picasso   </td>
+<td align="right">    +1 </td>
+<td>                                           </td>
+<td align="right">             1 |</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>Repository</h2>
+
+<p>I&rsquo;ve committed the source code for this example up to <a href="https://github.com/TippingCanoe/network-library-test/releases/tag/step-2">Github</a>.</p>
+
+<h3>Next steps</h3>
+
+<p>Next, we&rsquo;re going to look at performing basic REST requests in the different frameworks.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Iain Connor</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-24T12:22:20-06:00" pubdate data-updated="true">Jan 24<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/experiments/'>experiments</a>, <a class='category' href='/blog/categories/hack-day/'>hack day</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/" data-via="" data-counturl="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/24/benchmarking-android-networking-libraries/" title="Previous Post: Benchmarking Android networking libraries - Part 1: Rest API Testbed.">&laquo; Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">Benchmarking Android Networking Libraries - Part 2: Installing Libraries</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries/">Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/21/hello-world/">Hello World</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/TippingCanoe">@TippingCanoe</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'TippingCanoe',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tipping Canoe -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'tc-upthecreek';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/';
+        var disqus_url = 'http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
