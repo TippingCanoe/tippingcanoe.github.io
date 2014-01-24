@@ -4,7 +4,7 @@
   <title><![CDATA[Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-24T15:35:59-06:00</updated>
+  <updated>2014-01-24T15:36:43-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -281,7 +281,7 @@ Thumbs.db</code></pre></noscript></div>
 <tr>
 <td>Robospice </td>
 <td align="right">     0 </td>
-<td>                                           </td>
+<td> Generated build errors.                   </td>
 <td align="right">             0</td>
 </tr>
 <tr>
