@@ -170,10 +170,10 @@ Route::group(['prefix' => 'api', 'after' => 'requestEnd:' . $startTime], functio
 });
 ```
 
-### Repository
+## Repository
 
-I've committed the source code for this example up to http://github.com/TippingCanoe/rest-api-testbed.
+I've committed the source code for this example up to [Github](http://github.com/TippingCanoe/rest-api-testbed).
 
-### Next steps
+## Next steps
 
-Next, we're going to move over to Android and start testing these libraries out! More to come shortly.
+Next, we're going to move over to Android and get these libraries installed!
