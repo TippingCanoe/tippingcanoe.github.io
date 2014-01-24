@@ -9,8 +9,7 @@
   <meta name="author" content="Tipping Canoe">
 
   
-  <meta name="description" content="Welcome aboard
-">
+  <meta name="description" content="Preamble Over the last few months here at Tipping Canoe we&rsquo;ve really been trying to up our Android development game. Our primary web-language, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +71,303 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/01/24/benchmarking-android-networking-libraries/">Benchmarking Android Networking Libraries - Part 1: Rest API Testbed.</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-24T08:39:46-06:00" pubdate data-updated="true">Jan 24<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Preamble</h2>
+
+<p>Over the last few months here at <a href="http://tippingcanoe.com/">Tipping Canoe</a> we&rsquo;ve really been trying to up our Android development game. Our primary web-language, <a href="http://www.php.net/">PHP</a> has been going through somewhat of a renaissance, largely spurred by usage of <a href="https://getcomposer.org/">Composer</a> to think of your Application as a set of small, reusable, and interchangeable components controlled by a proper dependency management system. The Android world seems to be lagging behind on this, with a vast majority of tutorials online (including <a href="http://developer.android.com/tools/support-library/setup.html">loads from Google</a>) suggesting that manually copying <code>.jar</code> files around is a sane way of managing your Application&rsquo;s dependencies.</p>
+
+<p><span class='pullquote-right' data-pullquote='if you&#8217;re using Eclipse and ANT, you&#8217;re doing modern Android development wrong'>
+Luckily, it seems there might be light at the end of the tunnel. Thanks to the <a href="http://tools.android.com/tech-docs/new-build-system">&ldquo;new build system&rdquo;</a> powered by Gradle, Android developers can now declare their dependencies in a configuration file and have the build system be responsible for filling those dependencies. I&rsquo;ll hopefully be doing another blog post about our journey moving to this new way of doing things later, but the short version is, if you&rsquo;re using Eclipse and ANT, you&rsquo;re doing modern Android development wrong. Configuration-hell is a place you shouldn&rsquo;t have to live in.
+</span></p>
+
+<p>Since this change, the quality and quantity of open source Android libraries is slowly slowly starting to grow, and it&rsquo;s an important part of our job to vet what&rsquo;s available out there to make sure we&rsquo;re making the right decisions &mdash; which lead me to this experiment. A common theme across all of our current Applications is that they all rely on and communicate with a remote REST client and retrieve images and other resources from remote locations.</p>
+
+<h2>Contenders</h2>
+
+<p>After a bit or lurking in <a href="http://www.reddit.com/r/androiddev/">/r/androiddev</a>, here are what I believe to be the contenders.</p>
+
+<p>For networking/REST;</p>
+
+<ol>
+<li><a href="http://square.github.io/retrofit/">Retrofit</a> by Square.</li>
+<li><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> by Google.</li>
+<li><a href="http://github.com/koush/ion">ion</a> by Koushik Dutta.</li>
+<li><a href="http://github.com/octo-online/robospice">Robospice</a> by Octo Technology.</li>
+</ol>
+
+
+<p>For image loading;</p>
+
+<ol>
+<li><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> by Google.</li>
+<li><a href="http://github.com/koush/ion">ion</a> by Koushik Dutta.</li>
+<li><a href="http://square.github.io/picasso/">Picasso</a> by Square.</li>
+</ol>
+
+
+<h2>Testbed</h2>
+
+<p>To accurately compare these libraries, we&rsquo;re going to need a simple testbed to act as a REST server. Lately, we&rsquo;ve been using <a href="http://laravel.com/">Laravel 4</a>, a PHP framework, for lots of our API development, so I&rsquo;m going to build a quick testbed using it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>composer create-project laravel/laravel testbed --prefer-dist
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Tables</h3>
+
+<p>First, we&rsquo;re going to need a database to save our results to. For quick bootup, we&rsquo;re just going to go into the <code>/app/config/database.php</code> and setup a SQLite database.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="s1">&#39;default&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;sqlite&#39;</span><span class="p">,</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then we&rsquo;ll need to create some database tables for some Models we&rsquo;re going to need storage for.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>php artisan migrate:make create_users_table --create<span class="o">=</span>users
+</span><span class='line'>php artisan migrate:make create_requests_table --create<span class="o">=</span>requests
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We&rsquo;ll add some information to those tables.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nx">Schema</span><span class="o">::</span><span class="na">create</span><span class="p">(</span><span class="s1">&#39;users&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nx">Blueprint</span> <span class="nv">$table</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">increments</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">string</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">string</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">boolean</span><span class="p">(</span><span class="s1">&#39;is_admin&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">timestamps</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Schema</span><span class="o">::</span><span class="na">create</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nx">Blueprint</span> <span class="nv">$table</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">increments</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">integer</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">unique</span><span class="p">();</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">enum</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">]);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">string</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">string</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">enum</span><span class="p">(</span><span class="s1">&#39;engine&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;retrofit&#39;</span><span class="p">,</span> <span class="s1">&#39;volley&#39;</span><span class="p">,</span> <span class="s1">&#39;ion&#39;</span><span class="p">,</span> <span class="s1">&#39;robospice&#39;</span><span class="p">]);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">timestamp</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">timestamp</span><span class="p">(</span><span class="s1">&#39;end_time&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$table</span><span class="o">-&gt;</span><span class="na">timestamps</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we&rsquo;ll run those migrations to actually create the tables.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>php artisan migrate
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Models</h3>
+
+<p>Now that we&rsquo;ve got storage rolling, we&rsquo;ll need to make some Models.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">class</span> <span class="nc">Request</span> <span class="k">extends</span> <span class="nx">Eloquent</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">protected</span> <span class="nv">$table</span> <span class="o">=</span> <span class="s1">&#39;requests&#39;</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">public</span> <span class="nv">$timestamps</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">protected</span> <span class="nv">$softDelete</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="k">extends</span> <span class="nx">Eloquent</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">protected</span> <span class="nv">$table</span> <span class="o">=</span> <span class="s1">&#39;users&#39;</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">public</span> <span class="nv">$timestamps</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">protected</span> <span class="nv">$softDelete</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Routes</h3>
+
+<p>And now we&rsquo;ll add some REST routes to the <code>/app/routes.php</code> file.<br/>
+<em>Note: If you add code into your routes file like this, it&rsquo;ll make web-developers cry. Use Controllers.</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nv">$startTime</span> <span class="o">=</span> <span class="nb">time</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Route</span><span class="o">::</span><span class="na">filter</span><span class="p">(</span><span class="s1">&#39;requestEnd&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nv">$route</span><span class="p">,</span> <span class="nv">$request</span><span class="p">,</span> <span class="nv">$response</span><span class="p">,</span> <span class="nv">$startTime</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">RequestTiming</span><span class="p">(</span><span class="nx">Input</span><span class="o">::</span><span class="na">all</span><span class="p">());</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span><span class="o">-&gt;</span><span class="na">method</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">server</span><span class="p">(</span><span class="s1">&#39;REQUEST_METHOD&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span><span class="o">-&gt;</span><span class="na">path</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">path</span><span class="p">();</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span><span class="o">-&gt;</span><span class="na">parameters</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">(</span><span class="nx">Input</span><span class="o">::</span><span class="na">all</span><span class="p">());</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span><span class="o">-&gt;</span><span class="na">start_time</span> <span class="o">=</span> <span class="nb">date</span><span class="p">(</span><span class="s2">&quot;Y-m-d H:m:s&quot;</span><span class="p">,</span> <span class="nv">$startTime</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span><span class="o">-&gt;</span><span class="na">end_time</span> <span class="o">=</span> <span class="nb">date</span><span class="p">(</span><span class="s2">&quot;Y-m-d H:m:s&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$requestTiming</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">Route</span><span class="o">::</span><span class="na">group</span><span class="p">([</span><span class="s1">&#39;prefix&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;api&#39;</span><span class="p">,</span> <span class="s1">&#39;after&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;requestEnd:&#39;</span> <span class="o">.</span> <span class="nv">$startTime</span><span class="p">],</span> <span class="k">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// Get some sample JSON</span>
+</span><span class='line'>  <span class="nx">Route</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">Response</span><span class="o">::</span><span class="na">json</span><span class="p">(</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Get an array of all Users</span>
+</span><span class='line'>  <span class="nx">Route</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">&#39;/user&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$users</span> <span class="o">=</span> <span class="nx">User</span><span class="o">::</span><span class="na">all</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">Response</span><span class="o">::</span><span class="na">json</span><span class="p">(</span><span class="nv">$users</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Get a specific User</span>
+</span><span class='line'>  <span class="nx">Route</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">&#39;/user/{id}&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$user</span> <span class="o">=</span> <span class="nx">User</span><span class="o">::</span><span class="na">findOrFail</span><span class="p">(</span><span class="nv">$id</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">Response</span><span class="o">::</span><span class="na">json</span><span class="p">(</span><span class="nv">$user</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Create a new User</span>
+</span><span class='line'>  <span class="nx">Route</span><span class="o">::</span><span class="na">post</span><span class="p">(</span><span class="s1">&#39;/user&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$user</span> <span class="o">=</span> <span class="nx">User</span><span class="o">::</span><span class="na">create</span><span class="p">(</span><span class="nx">Input</span><span class="o">::</span><span class="na">all</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span> <span class="nv">$avatar</span> <span class="o">=</span> <span class="nx">Input</span><span class="o">::</span><span class="na">hasFile</span><span class="p">(</span><span class="s1">&#39;avatar&#39;</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="nv">$avatar</span><span class="o">-&gt;</span><span class="na">move</span><span class="p">(</span><span class="nx">storage_path</span><span class="p">(),</span> <span class="s2">&quot;avatar_&quot;</span> <span class="o">.</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">id</span> <span class="o">.</span> <span class="s2">&quot;.&quot;</span> <span class="o">.</span> <span class="nv">$avatar</span><span class="o">-&gt;</span><span class="na">getClientOriginalExtension</span><span class="p">());</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">Response</span><span class="o">::</span><span class="na">json</span><span class="p">(</span><span class="nv">$user</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Update a User</span>
+</span><span class='line'>  <span class="nx">Route</span><span class="o">::</span><span class="na">post</span><span class="p">(</span><span class="s1">&#39;/user/{id}&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$user</span> <span class="o">=</span> <span class="nx">User</span><span class="o">::</span><span class="na">findOrFail</span><span class="p">(</span><span class="nv">$id</span><span class="p">);</span>
+</span><span class='line'>      <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">update</span><span class="p">(</span><span class="nx">Input</span><span class="o">::</span><span class="na">all</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">Response</span><span class="o">::</span><span class="na">json</span><span class="p">(</span><span class="nv">$user</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Repository</h3>
+
+<p>I&rsquo;ve committed the source code for this example up to <a href="http://github.com/TippingCanoe/rest-api-testbed.">http://github.com/TippingCanoe/rest-api-testbed.</a></p>
+
+<h3>Next steps</h3>
+
+<p>Next, we&rsquo;re going to move over to Android and start testing these libraries out! More to come shortly.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/01/21/hello-world/">Hello World</a></h1>
     
     
@@ -114,6 +410,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries/">Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/01/21/hello-world/">Hello World</a>

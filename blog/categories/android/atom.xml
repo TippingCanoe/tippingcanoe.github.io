@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: android | Up The Creek]]></title>
+  <link href="http://upthecreek.tippingcanoe.com/blog/categories/android/atom.xml" rel="self"/>
+  <link href="http://upthecreek.tippingcanoe.com/"/>
+  <updated>2014-01-24T12:18:46-06:00</updated>
+  <id>http://upthecreek.tippingcanoe.com/</id>
+  <author>
+    <name><![CDATA[Tipping Canoe]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Android networking libraries - Part 1: Rest API Testbed.]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/"/>
+    <updated>2014-01-24T08:39:46-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries</id>
+    <content type="html"><![CDATA[<h2>Preamble</h2>
+
+<p>Over the last few months here at <a href="http://tippingcanoe.com/">Tipping Canoe</a> we&rsquo;ve really been trying to up our Android development game. Our primary web-language, <a href="http://www.php.net/">PHP</a> has been going through somewhat of a renaissance, largely spurred by usage of <a href="https://getcomposer.org/">Composer</a> to think of your Application as a set of small, reusable, and interchangeable components controlled by a proper dependency management system. The Android world seems to be lagging behind on this, with a vast majority of tutorials online (including <a href="http://developer.android.com/tools/support-library/setup.html">loads from Google</a>) suggesting that manually copying <code>.jar</code> files around is a sane way of managing your Application&rsquo;s dependencies.</p>
+
+<p>Surround your pullquote like this {" text to be quoted "}</p>
+
+<p>Since this change, the quality and quantity of open source Android libraries is slowly slowly starting to grow, and it&rsquo;s an important part of our job to vet what&rsquo;s available out there to make sure we&rsquo;re making the right decisions &mdash; which lead me to this experiment. A common theme across all of our current Applications is that they all rely on and communicate with a remote REST client and retrieve images and other resources from remote locations.</p>
+
+<h2>Contenders</h2>
+
+<p>After a bit or lurking in <a href="http://www.reddit.com/r/androiddev/">/r/androiddev</a>, here are what I believe to be the contenders.</p>
+
+<p>For networking/REST;</p>
+
+<ol>
+<li><a href="http://square.github.io/retrofit/">Retrofit</a> by Square.</li>
+<li><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> by Google.</li>
+<li><a href="http://github.com/koush/ion">ion</a> by Koushik Dutta.</li>
+<li><a href="http://github.com/octo-online/robospice">Robospice</a> by Octo Technology.</li>
+</ol>
+
+
+<p>For image loading;</p>
+
+<ol>
+<li><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> by Google.</li>
+<li><a href="http://github.com/koush/ion">ion</a> by Koushik Dutta.</li>
+<li><a href="http://square.github.io/picasso/">Picasso</a> by Square.</li>
+</ol>
+
+
+<h2>Testbed</h2>
+
+<p>To accurately compare these libraries, we&rsquo;re going to need a simple testbed to act as a REST server. Lately, we&rsquo;ve been using <a href="http://laravel.com/">Laravel 4</a>, a PHP framework, for lots of our API development, so I&rsquo;m going to build a quick testbed using it.</p>
+
+<p><code>bash
+composer create-project laravel/laravel testbed --prefer-dist
+</code></p>
+
+<h3>Tables</h3>
+
+<p>First, we&rsquo;re going to need a database to save our results to. For quick bootup, we&rsquo;re just going to go into the <code>/app/config/database.php</code> and setup a SQLite database.</p>
+
+<p><code>php
+'default' =&gt; 'sqlite',
+</code></p>
+
+<p>Then we&rsquo;ll need to create some database tables for some Models we&rsquo;re going to need storage for.</p>
+
+<p><code>bash
+php artisan migrate:make create_users_table --create=users
+php artisan migrate:make create_requests_table --create=requests
+</code></p>
+
+<p>We&rsquo;ll add some information to those tables.</p>
+
+<p>``` php
+Schema::create(&lsquo;users&rsquo;, function(Blueprint $table)
+{</p>
+
+<pre><code>$table-&gt;increments('id');
+$table-&gt;string('username');
+$table-&gt;string('email');
+$table-&gt;boolean('is_admin');
+$table-&gt;timestamps();
+</code></pre>
+
+<p>});</p>
+
+<p>Schema::create(&lsquo;requests&rsquo;, function(Blueprint $table)
+{</p>
+
+<pre><code>$table-&gt;increments('id');
+$table-&gt;integer('client_id')-&gt;unique();
+$table-&gt;enum('method', ['GET', 'POST']);
+$table-&gt;string('path');
+$table-&gt;string('parameters');
+$table-&gt;enum('engine', ['retrofit', 'volley', 'ion', 'robospice']);
+$table-&gt;timestamp('start_time');
+$table-&gt;timestamp('end_time');
+$table-&gt;timestamps();
+</code></pre>
+
+<p>});
+```</p>
+
+<p>And we&rsquo;ll run those migrations to actually create the tables.</p>
+
+<p><code>bash
+php artisan migrate
+</code></p>
+
+<h3>Models</h3>
+
+<p>Now that we&rsquo;ve got storage rolling, we&rsquo;ll need to make some Models.</p>
+
+<p>``` php
+class Request extends Eloquent {</p>
+
+<pre><code>protected $table = 'requests';
+public $timestamps = true;
+protected $softDelete = false;
+</code></pre>
+
+<p>}</p>
+
+<p>class User extends Eloquent {</p>
+
+<pre><code>protected $table = 'users';
+public $timestamps = true;
+protected $softDelete = false;
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Routes</h3>
+
+<p>And now we&rsquo;ll add some REST routes to the <code>/app/routes.php</code> file.<br/>
+<em>Note: If you add code into your routes file like this, it&rsquo;ll make web-developers cry. Use Controllers.</em></p>
+
+<p>``` php
+$startTime = time();</p>
+
+<p>Route::filter(&lsquo;requestEnd&rsquo;, function($route, $request, $response, $startTime) {</p>
+
+<pre><code>$requestTiming = new RequestTiming(Input::all());
+$requestTiming-&gt;method = $request-&gt;server('REQUEST_METHOD');
+$requestTiming-&gt;path = $request-&gt;path();
+$requestTiming-&gt;parameters = json_encode(Input::all());
+$requestTiming-&gt;start_time = date("Y-m-d H:m:s", $startTime);
+$requestTiming-&gt;end_time = date("Y-m-d H:m:s");
+$requestTiming-&gt;save();
+</code></pre>
+
+<p>});</p>
+
+<p>Route::group([&lsquo;prefix&rsquo; => &lsquo;api&rsquo;, &lsquo;after&rsquo; => &lsquo;requestEnd:&rsquo; . $startTime], function() {</p>
+
+<pre><code>// Get some sample JSON
+Route::get('/', function() {
+
+    return Response::json("Hello World!");
+});
+
+// Get an array of all Users
+Route::get('/user', function() {
+    $users = User::all();
+
+    return Response::json($users);
+});
+
+// Get a specific User
+Route::get('/user/{id}', function($id) {
+    $user = User::findOrFail($id);
+
+    return Response::json($user);
+});
+
+// Create a new User
+Route::post('/user', function() {
+    $user = User::create(Input::all());
+
+    if ( $avatar = Input::hasFile('avatar') ) {
+        $avatar-&gt;move(storage_path(), "avatar_" . $user-&gt;id . "." . $avatar-&gt;getClientOriginalExtension());
+    }
+
+    return Response::json($user);
+});
+
+// Update a User
+Route::post('/user/{id}', function($id) {
+    $user = User::findOrFail($id);
+    $user-&gt;update(Input::all());
+
+    return Response::json($user);
+});
+</code></pre>
+
+<p>});
+```</p>
+
+<h3>Repository</h3>
+
+<p>I&rsquo;ve committed the source code for this example up to <a href="http://github.com/TippingCanoe/rest-api-testbed.">http://github.com/TippingCanoe/rest-api-testbed.</a></p>
+
+<h3>Next steps</h3>
+
+<p>Next, we&rsquo;re going to move over to Android and start testing these libraries out! More to come shortly.</p>
+]]></content>
+  </entry>
+  
+</feed>
