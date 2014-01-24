@@ -4,7 +4,7 @@
   <title><![CDATA[Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-24T15:45:39-06:00</updated>
+  <updated>2014-01-24T15:48:46-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -274,7 +274,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The solution was to top it from attempting to compile that module.</p>
+<p>The solution was to stop it from attempting to compile that module.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
