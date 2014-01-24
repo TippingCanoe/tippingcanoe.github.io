@@ -3,13 +3,8 @@ layout: post
 title: "Hello World"
 date: 2014-01-21 17:08:20 -0600
 comments: true
-categories: 
+categories: hello world
+author: Iain Connor
 ---
 
-```php
-$a = new A();
-```
-
-```js
-var i = 0;
-```
+Welcome aboard
