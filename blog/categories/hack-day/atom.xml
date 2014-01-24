@@ -4,7 +4,7 @@
   <title><![CDATA[Category: hack day | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/hack-day/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-24T15:41:40-06:00</updated>
+  <updated>2014-01-24T15:45:39-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -37,24 +37,31 @@
 
 <p>The one improvement that I&rsquo;d suggest making is changing the <code>.gitignore</code> file. If you&rsquo;re working in a team all using Android Studio, there are actually a few settings in projects that you might want to share between your developers. Most <code>.gitignore</code> files will have you ignoring the entire <code>/.idea</code> folder, so you&rsquo;ll lose things like code style settings, which, in our mind, make sense to enforce and share amongst your team.</p>
 
-<p><div><script src='https://gist.github.com/8605514.js'></script>
-<noscript><pre><code># Built application files
-/*/build/
+<p>``` text One .gitignore to rule them all</p>
 
-# Crashlytics configuations
-com_crashlytics_export_strings.xml
+<h1>Built application files</h1>
 
-# Local configuration file (sdk path, etc)
-local.properties
+<p>/*/build/</p>
 
-# Gradle generated files
-.gradle/
+<h1>Crashlytics configuations</h1>
 
-# Signing files
-.signing/
+<p>com_crashlytics_export_strings.xml</p>
 
-# User-specific configurations
-.idea/libraries/
+<h1>Local configuration file (sdk path, etc)</h1>
+
+<p>local.properties</p>
+
+<h1>Gradle generated files</h1>
+
+<p>.gradle/</p>
+
+<h1>Signing files</h1>
+
+<p>.signing/</p>
+
+<h1>User-specific configurations</h1>
+
+<p>.idea/libraries/
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/.name
@@ -65,17 +72,18 @@ local.properties
 .idea/modules.xml
 .idea/scopes/scope_settings.xml
 .idea/vcs.xml
-*.iml
+*.iml</p>
 
-# OS-specific files
-.DS_Store
+<h1>OS-specific files</h1>
+
+<p>.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db</code></pre></noscript></div>
-</p>
+Thumbs.db
+```</p>
 
 <h3>Installing Retrofit</h3>
 

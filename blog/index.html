@@ -112,44 +112,81 @@
 
 <p>The one improvement that I&rsquo;d suggest making is changing the <code>.gitignore</code> file. If you&rsquo;re working in a team all using Android Studio, there are actually a few settings in projects that you might want to share between your developers. Most <code>.gitignore</code> files will have you ignoring the entire <code>/.idea</code> folder, so you&rsquo;ll lose things like code style settings, which, in our mind, make sense to enforce and share amongst your team.</p>
 
-<div><script src='https://gist.github.com/8605514.js'></script>
-<noscript><pre><code># Built application files
-/*/build/
-
-# Crashlytics configuations
-com_crashlytics_export_strings.xml
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Gradle generated files
-.gradle/
-
-# Signing files
-.signing/
-
-# User-specific configurations
-.idea/libraries/
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/.name
-.idea/compiler.xml
-.idea/copyright/profiles_settings.xml
-.idea/encodings.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/scopes/scope_settings.xml
-.idea/vcs.xml
-*.iml
-
-# OS-specific files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db</code></pre></noscript></div>
+<figure class='code'><figcaption><span>One .gitignore to rule them all</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'># Built application files
+</span><span class='line'>/*/build/
+</span><span class='line'>
+</span><span class='line'># Crashlytics configuations
+</span><span class='line'>com_crashlytics_export_strings.xml
+</span><span class='line'>
+</span><span class='line'># Local configuration file (sdk path, etc)
+</span><span class='line'>local.properties
+</span><span class='line'>
+</span><span class='line'># Gradle generated files
+</span><span class='line'>.gradle/
+</span><span class='line'>
+</span><span class='line'># Signing files
+</span><span class='line'>.signing/
+</span><span class='line'>
+</span><span class='line'># User-specific configurations
+</span><span class='line'>.idea/libraries/
+</span><span class='line'>.idea/workspace.xml
+</span><span class='line'>.idea/tasks.xml
+</span><span class='line'>.idea/.name
+</span><span class='line'>.idea/compiler.xml
+</span><span class='line'>.idea/copyright/profiles_settings.xml
+</span><span class='line'>.idea/encodings.xml
+</span><span class='line'>.idea/misc.xml
+</span><span class='line'>.idea/modules.xml
+</span><span class='line'>.idea/scopes/scope_settings.xml
+</span><span class='line'>.idea/vcs.xml
+</span><span class='line'>*.iml
+</span><span class='line'>
+</span><span class='line'># OS-specific files
+</span><span class='line'>.DS_Store
+</span><span class='line'>.DS_Store?
+</span><span class='line'>._*
+</span><span class='line'>.Spotlight-V100
+</span><span class='line'>.Trashes
+</span><span class='line'>ehthumbs.db
+</span><span class='line'>Thumbs.db
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>Installing Retrofit</h3>
