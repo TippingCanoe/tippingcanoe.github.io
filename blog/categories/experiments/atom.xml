@@ -4,7 +4,7 @@
   <title><![CDATA[Category: experiments | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/experiments/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-24T15:34:37-06:00</updated>
+  <updated>2014-01-24T15:35:59-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -216,45 +216,39 @@ compile (&lsquo;com.octo.android.robospice:robospice:1.4.2&rsquo;) {</p>
 <table>
 <thead>
 <tr>
-<th></th>
-<th> Library   </th>
+<th>Library   </th>
 <th align="right"> Score </th>
 <th> Notes                                     </th>
-<th align="right"> Running Tally </th>
+<th align="right"> Running Tally</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td> Retrofit  </td>
+<td>Retrofit  </td>
 <td align="right">    +1 </td>
 <td>                                           </td>
 <td align="right">             1</td>
 </tr>
 <tr>
-<td></td>
-<td> Volley    </td>
+<td>Volley    </td>
 <td align="right">    -1 </td>
 <td> Not available in modern dependency tools. </td>
 <td align="right">            -1</td>
 </tr>
 <tr>
-<td></td>
-<td> ion       </td>
+<td>ion       </td>
 <td align="right">    +1 </td>
 <td>                                           </td>
 <td align="right">             1</td>
 </tr>
 <tr>
-<td></td>
-<td> Robospice </td>
+<td>Robospice </td>
 <td align="right">     0 </td>
 <td>                                           </td>
 <td align="right">             0</td>
 </tr>
 <tr>
-<td></td>
-<td> Picasso   </td>
+<td>Picasso   </td>
 <td align="right">    +1 </td>
 <td>                                           </td>
 <td align="right">             1</td>
