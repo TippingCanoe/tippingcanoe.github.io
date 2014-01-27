@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:01:31-06:00</updated>
+  <updated>2014-01-27T10:02:14-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -39,7 +39,7 @@ compile 'com.octo.android.robospice:robospice-retrofit:1.4.2'
 </code></p>
 
 <p>Since we&rsquo;re using Retrofit under the hood, we&rsquo;ll need to create an interface for our API.<br/>
-*Note: This code snippet returns the result directly, as opposed to using a callback. Retrofit uses this as a mechanic to determine wheter to execute the request synchronously (which it does when values are returned) or asynchronously (when values are consumed by a callback). In the Robospice world, the request is already being done in a Service, so there is no need to spawn a separate thread.</p>
+<em>Note: This code snippet returns the result directly, as opposed to using a callback. Retrofit uses this as a mechanic to determine wheter to execute the request synchronously (which it does when values are returned) or asynchronously (when values are consumed by a callback). In the Robospice world, the request is already being done in a Service, so there is no need to spawn a separate thread.</em></p>
 
 <p>``` java
 public interface Testbed {</p>
