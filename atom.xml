@@ -4,7 +4,7 @@
   <title><![CDATA[Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:10:21-06:00</updated>
+  <updated>2014-01-27T10:12:35-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -354,12 +354,17 @@
 
 <h2>Common setup</h2>
 
-<p><strong>POJO</strong>:
-A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
-<strong>Gson</strong>:
-<a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
-<strong>Jackson</strong>:
-<a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
+<h4>POJO</h4>
+
+<p>A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.</p>
+
+<h4>Gson</h4>
+
+<p><a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.</p>
+
+<h4>Jackson</h4>
+
+<p><a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
 
 <p>So, we&rsquo;re going to need a POJO for Gson &amp; Jackson to use to represent our User object.</p>
 
@@ -498,8 +503,9 @@ A POJO is, simply, a plain-old-java-object. These are just your standard, existi
 
 <h2>Other features</h2>
 
-<p><strong>Progress</strong>:
-ion has some really nice plugins for retrieving the progress of any request.</p>
+<h4>Progress</h4>
+
+<p>ion has some really nice plugins for retrieving the progress of any request.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -522,7 +528,7 @@ ion has some really nice plugins for retrieving the progress of any request.</p>
 
 <p></p>
 
-<p><strong>Image loading</strong>:</p>
+<h4>Image loading</h4>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -548,8 +554,9 @@ ion has some really nice plugins for retrieving the progress of any request.</p>
 <p>
 The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p>
 
-<p><strong>Cancelling requests</strong>:
-Requests can be canncelled individually.</p>
+<h4>Cancelling requests</h4>
+
+<p>Requests can be canncelled individually.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsers</span><span class="o">.</span><span class="na">cancel</span><span class="o">();</span>
