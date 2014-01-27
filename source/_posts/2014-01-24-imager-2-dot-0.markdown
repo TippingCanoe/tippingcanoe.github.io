@@ -1,0 +1,115 @@
+---
+layout: post
+title: "Imager 2.0"
+date: 2014-01-24 07:58:45 -0600
+comments: true
+categories: [laravel, package, images, ioc]
+---
+
+My project for today is going to be to rewrite our imaging library to reflect improvements in package, code and schema conventions that have come up over the past while.
+
+## 1.0
+
+Prior to today, our imaging library had two major iterations.  The first was created by our 6min team, however it never ended up being used for any projects.
+
+The second iteration had several incremental changes added to support functionality we needed.  Imager turned out to be fairly useful as a result and is now used in [pirateship](http://www.urlaubspiraten.de) and [ReFash](http://www.refash.net).
+
+Because the first never really saw light of day, I consider these two passes to be the "1.0" branch.
+
+So first thing's first, I created a "1.0" branch in git and tagged it with a version of "1.0.0".  The third version indicator isn't just for minor changes, but also because git doesn't allow branch and tag names to collide.
+
+Anyone who is looking to use the old version of imager can now attach to the version "1.*" and stay up to date with developments there...
+
+## The future is 2.0
+
+After the cleanup for 1.0, we're now ready to begin moving forward with 2.0.
+
+I switch back to master, create a new branch and name it 2.0.  I'm not going to bother tagging it until we actually have something to try booting as anyone checking out "2.0.0" would basically end up with whatever state 1.0 is in right now.
+
+## Project Structure & Refactoring
+
+When refactoring an existing library, it's still useful to keep classes until you know you no longer need them for reference.  So I won't be deleting anything until I'm certain it's behind me.
+
+### Dependencies
+
+The first thing to change in Imager will be the utility library upon which it's built.  Originally it used the package `gregwar/image`, however I think that project duplicates the work found in `intervention/image` and isn't updated as frequently.
+
+### Class & Namespace Structure
+
+The naming convention used in imager needs a quick tweak just to be less redundant and more meaningful within itself.  Keeping in mind rules of orthogonality, I've renamed the service class to "Service" and the service provider class to "ServiceProvider".  They now have a better semantic meaning when read in the full namespace: `SixMinutes\Imager\Service` and `SixMinutes\Imager\ServiceProvider`.
+
+_Don't fret over the possibility of duplicate class names across a whole project because this is the point of namespacing.  You can always alias in-scope which is where any meaning originates from._
+
+### Traits & Interfaces
+
+Traits move into the "Model" directory and become suffixed with "Impl".  Interfaces are created with the old trait name to represent the signatures of the trait's presence.  This allows us to leverage some strong typing within PHP and good OO design principles.
+
+_While traits add functionality declaratively, it's important to remember that they don't impact the type of an object._
+
+So `Imageable` is now an interface. `ImageableImpl` is now a Trait that fulfills the interface.  Later on, you'll see how this strong typing helps us when working in `Service` and contributes towards a clear development workflow.
+
+We'll be working with the trait and interface over the course of things.
+
+### Schema & Migration
+
+The old imager schema stored every image it generated in the database.  This obvoiusly causes issues as well as confusion with duplication as well as limiting us to profiles that have already been generated.  There's also issues with profiles being generated that never get used.
+
+One of the main goals of this rewrite is to change imager's behaviour to be on-demand and to only concern ourselves with original images during storage.  This one simple rule saves us from a lot of complexity down the line by removing the database from the equation when dealing with manipulations.
+
+I've created a basic schema that stores the image along with some metadata about it:  
+
+ * We are keeping the notion of slots which will give us the ability to assign position information to images grouped by the `Imageable` type and ID combination.
+We'll also be holding onto the average colour information as that's useful for clients to have and possibly even analysis.
+ * Additional fields may come along, but until we make the first tagged release, we can always amend the migration.
+ * Width and height of the source file itself are handy for calculating eligibility for use and ratios, so that will be made available for querying.
+
+
+### Data Access
+
+I'm also adding repositories for the service layer to leverage.  This will allow us to keep some of the more elaborate eloquent code away from business-thinking.  I will however be retaining the leaky abstraction so that we can leverage late-executed queries and named scopes.  This keeps the libray rooted in it's dependencies on Laravel and Eloquent.
+
+Don't forget, repositories must be bound in the service provider to their interface abstract!
+
+### IoC
+
+Wiring up the IoC for this project is a little more interesting than most projects because intervention claims to support Laravel 4.  Unfortunately, they've accidentally bundled their data object with their service and so they have to use a custom binding that bypasses all constructor parameters. 
+
+In essence, their `Image` class has two modes.  One as an instance of the data modelling an image, and another as a service that's capable of working with instances of `Image`.  This is not a subtle distinction and I've made a ticket in their github tracker outlining such.
+
+Because of this, they have to manually wire up their service, which I have no use for so I'll be handling it myself.  The nice thing about this is that it spares any user of this library from having to add two service providers.  We also insulate ourselves from the risk of the service accidentally accumulating any state over the course of usage; Each request for an instance of intervention will result in a new "service" being made.
+
+One other interesting note is that because we have lots of settings to assign to the service from Laravel, we want to do a mini factory pattern inside of our own `Service`'s binding.  This lets us take config settings from the Laravel environment without creating any bindings to how Laravel does it's configuration.  Sadly, this is because Laravel doesn't allow for any type of setter-injection bindings.
+
+
+## Features
+
+Besides a lot of cleanup and simplification, a few improvements are being introduced in Imager 2.0.
+
+
+### Pluggables
+
+I've come up with a little pattern for the drivers in Imager.  The basic gist of it is that the configuration indicates a class, abstract or name binding which gets resolved out of the IoC.  Then, each key in the configuration array underneath that name gets turned into a setter method call on the driver.  This gives plugin authors lots of flexibility.  There's not much really to doing this, so I'm not sure if a base class is warranted, although I'll keep my eyes open for any opportunity to reduce duplication going on there.
+
+#### Storage
+
+Storage in imager 1.0 while configurable was also hard-coded and offered no way to separate the generation of URLs by storage provider.  Imager 2.0 alleviates this by allowing for entire drivers to be authored and specified.
+
+#### Processing Filters
+
+Similar to storage, image filtering was configurable but also very rigid.  Order of filters as well as the ability to create new ones was fairly limited.  The main difference between the filter and storage driver configuration approaches is that the filters don't key by the type.  This allows the same filter to appear twice in a chain.
+
+Configuration of processing filters is also important to note as it will be sets of filters that are used to key and generate derived images from their original.
+
+
+### Batching
+
+When working with large change sets - be it from front end or API - there needs to be a standard structure to avoid form-handling being mixed in with image operations.  For this purpose, I've created a very lightweight batching schema.  The batching schema allows any source to instruct Imager to perform a series of operations to an Imageable within a single request. This is most useful for gallery management where you could be moving, deleting, re-ordering and uploading new images - even from external sources!
+
+## Conclusion
+
+There are lots of subtle changes in the functionality of Imager 2.0 that may not seem obvious at first.  The surface area of the library itself has changed to better reflect the operations being performed and the internals are now better prepared for changes in the future.  A lot of the code has been split off from the service into the various filters, drivers, repositories and models making it a much easier read.
+
+For some more examples, check [my presentation on Imager 2.0](http://goo.gl/6oiKOR).
+
+
+
