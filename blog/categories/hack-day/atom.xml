@@ -4,7 +4,7 @@
   <title><![CDATA[Category: hack day | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/hack-day/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:05:32-06:00</updated>
+  <updated>2014-01-27T10:05:52-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -417,7 +417,7 @@ Future&lt;List<User>> getUsers = Ion.with(getApplicationContext(), &ldquo;@TODO&
       .load("http://example.com/image.png");
  </code></p>
 
-<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.jav%0A%20%20a"><code>Transform</code></a></p></li>
+<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p></li>
 <li><p><strong>Cancelling requests</strong>
   Requests can be canncelled individually.</p>
 
