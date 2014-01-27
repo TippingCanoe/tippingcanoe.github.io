@@ -4,7 +4,7 @@
   <title><![CDATA[Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:04:51-06:00</updated>
+  <updated>2014-01-27T10:05:32-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -500,7 +500,7 @@ Jackson
 
 <ul>
 <li><p><strong>Progress</strong>
-  ion has some really nice plugins for retrieving the progress of any request</p>
+  ion has some really nice plugins for retrieving the progress of any request.</p>
 
 <p>  &#8220;` java
   indexRequest
