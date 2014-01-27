@@ -4,7 +4,7 @@
   <title><![CDATA[Category: experiments | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/experiments/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:05:52-06:00</updated>
+  <updated>2014-01-27T10:06:50-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -388,21 +388,7 @@ Future&lt;List<User>> getUsers = Ion.with(getApplicationContext(), &ldquo;@TODO&
 
 <ul>
 <li><p><strong>Progress</strong>
-  ion has some really nice plugins for retrieving the progress of any request.</p>
-
-<p>  ``` java
-  indexRequest
-      .progressBar(yourProgressBarHere)
-      .progressDialog(yourProgressDialogHere)
-      .progress(new ProgressCallback() {
-          @Override
-          public void onProgress(int downloaded, int total) {</p>
-
-<pre><code>      }
-  });
-</code></pre>
-
-<p>  ```</p></li>
+  ion has some really nice plugins for retrieving the progress of any request.</p></li>
 <li><p><strong>Image loading</strong></p>
 
 <p>  <code>java
