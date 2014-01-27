@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: android | Up The Creek]]></title>
+  <link href="http://upthecreek.tippingcanoe.com/blog/categories/android/atom.xml" rel="self"/>
+  <link href="http://upthecreek.tippingcanoe.com/"/>
+  <updated>2014-01-27T10:33:00-06:00</updated>
+  <id>http://upthecreek.tippingcanoe.com/</id>
+  <author>
+    <name><![CDATA[Tipping Canoe]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Android Networking Libraries - Part 2: Installing Libraries]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/"/>
+    <updated>2014-01-24T12:22:20-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries</id>
+    <content type="html"><![CDATA[<h2>Preamble</h2>
+
+<p>Where we <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">last left our heroes</a>, we&rsquo;d setup a <a href="http://github.com/TippingCanoe/rest-api-testbed">testbed</a> using <a href="http://www.laravel.com">Laravel 4</a> to compare the speeds Android networking libraries. This time around, we&rsquo;re going to look at creating an Android Application to test these libraries out.</p>
+
+<h2>Creating the Application</h2>
+
+<p>As mentioned in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">part one</a> of this discussion, using modern tools to build our Applications has become a big focus for us at <a href="http://tippingcanoe.com/">Tipping Canoe</a>. The new hotness of <a href="http://tools.android.com/tech-docs/new-build-system">Gradle</a> and <a href="http://developer.android.com/sdk/installing/studio.html">Android Studio</a> have replaced the old bustedness of Eclipse and ANT for us, so having libraries available in a format that gels with proper dependency management is a big win and, in our opinion, a litmus test for the quality of a library.</p>
+
+<p>We&rsquo;ll use the Android Studio new project wizard to create our project.</p>
+
+<p><img src="/assets/new_project.png" alt="Android Studio new Application" /></p>
+
+<p>Once the project has booted, a majority of the work will be done in the <code>build.gradle</code> file.<br/>
+<em>Note: There are actually two <code>build.gradle</code> files, one in the outer project and one in the inner module for our Application. For the moment, the inner one is where we will be concentrating. However, at the time of writing a new update to Android Studio was pushed which introduced version <code>0.8</code> of the gradle plugin, which may have changed this.</em></p>
+
+<p><img src="/assets/new_project_done.png" alt="Android Studio new Application" /></p>
+
+<p>The one improvement that I&rsquo;d suggest making is changing the <code>.gitignore</code> file. If you&rsquo;re working in a team all using Android Studio, there are actually a few settings in projects that you might want to share between your developers. Most <code>.gitignore</code> files will have you ignoring the entire <code>/.idea</code> folder, so you&rsquo;ll lose things like code style settings, which, in our mind, make sense to enforce and share amongst your team.</p>
+
+<p><div><script src='https://gist.github.com/8605514.js'></script>
+<noscript><pre><code># Built application files
+/*/build/
+
+# Crashlytics configuations
+com_crashlytics_export_strings.xml
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Gradle generated files
+.gradle/
+
+# Signing files
+.signing/
+
+# User-specific configurations
+.idea/libraries/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+*.iml
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db</code></pre></noscript></div>
+</p>
+
+<h3>Installing Retrofit</h3>
+
+<p>``` groovy
+dependencies {</p>
+
+<pre><code>compile 'com.android.support:appcompat-v7:+'
+compile 'com.squareup.retrofit:retrofit:1.3.0'
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Installing Volley</h3>
+
+<p><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> isn&rsquo;t available in Maven at the time of writing. In fact, finding a download for it at all is a little tricky. For shame, Google. Thankfully <a href="https://github.com/vinc3m1">Vince Mi</a> has done us a great service in wrapping Volley in Maven repository he calls <a href="https://github.com/ark/ark">Ark</a>.</p>
+
+<p>So, we just need to add Ark.</p>
+
+<p>``` groovy
+repositories {</p>
+
+<pre><code>mavenCentral()
+maven {
+    url 'https://raw.github.com/ark/ark/master/releases/'
+}
+maven {
+    url 'https://raw.github.com/ark/ark/master/snapshots/'
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>And then add Volley.</p>
+
+<p>``` groovy
+dependencies {</p>
+
+<pre><code>compile 'com.android.support:appcompat-v7:+'
+compile 'com.android.frameworks:volley:master-SNAPSHOT'
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Installing ion</h3>
+
+<p>``` groovy
+dependencies {</p>
+
+<pre><code>compile 'com.android.support:appcompat-v7:+'
+compile 'com.koushikdutta.ion:ion:1.2.1'
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Installing Robospice</h3>
+
+<p>``` groovy
+dependencies {</p>
+
+<pre><code>compile 'com.android.support:appcompat-v7:+'
+compile 'com.octo.android.robospice:robospice:1.4.2'
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Installing Picasso</h3>
+
+<p>``` groovy
+dependencies {</p>
+
+<pre><code>compile 'com.android.support:appcompat-v7:+'
+compile 'com.squareup.picasso:picasso:2.1.1'
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Thoughts</h2>
+
+<p>Two things came up as a result of this,</p>
+
+<p>First, it&rsquo;s interesting to note that the only library that fails at being dead simple to install and manage is the &ldquo;offical&rdquo; one provided by Google. As tempting as it is to assume that Google&rsquo;s solutions are always going to be the best, there&rsquo;s somewhat of a track record of projects being abandonded without warning to developers using or relying on them. The optimist would say that Google knows Gradle/Maven are going to be replaced by some secret project in the near future. The pessimest would say that this is a sign that Volley might not be a long-term supported project.</p>
+
+<p>Second, this may be an extremely temporal thing that only exists at the time of writing, but Robo Spice generated an error while compiling;</p>
+
+<p>``` bash
+./gradlew build</p>
+
+<p>&hellip;
+UNEXPECTED TOP-LEVEL EXCEPTION:
+com.android.dex.DexException: Multiple dex files define Landroid/support/v4/accessibilityservice/
+&hellip;
+```</p>
+
+<p>What the heck? From the looks of that error message, something in Robo Spice is trying to include something that&rsquo;s conflicting with our version of the Android support library.</p>
+
+<p>``` bash
+./gradlew -q dependencies networkLibraryTest:dependencies</p>
+
+<p>&hellip;
+_debugApk
++&mdash;&ndash; com.android.support:appcompat-v7:+ &ndash;> 19.0.1
+|    -&mdash; com.android.support:support-v4:19.0.1
++&mdash;&ndash; com.squareup.retrofit:retrofit:1.3.0
+|    -&mdash; com.google.code.gson:gson:2.2.4
++&mdash;&ndash; com.android.frameworks:volley:master-SNAPSHOT
++&mdash;&ndash; com.koushikdutta.ion:ion:1.2.1
+|    +&mdash;&ndash; com.google.code.gson:gson:2.2.4
+|    -&mdash; com.koushikdutta.async:androidasync:1.2.1
++&mdash;&ndash; com.octo.android.robospice:robospice:1.4.2
+|    -&mdash; com.octo.android.robospice:robospice-cache:1.4.1
+|         +&mdash;&ndash; org.apache.commons:commons-lang3:3.1
+|         +&mdash;&ndash; org.apache.commons:commons-io:1.3.2
+|         |    -&mdash; commons-io:commons-io:1.3.2
+|         -&mdash; com.google.android:support-v4:r7
+-&mdash; com.squareup.picasso:picasso:2.1.1
+&hellip;
+```</p>
+
+<p>The solution was to top it from attempting to compile that module.</p>
+
+<p>``` groovy
+compile (&lsquo;com.octo.android.robospice:robospice:1.4.2&rsquo;) {</p>
+
+<pre><code>exclude module: 'support-v4'
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Scorecard</h2>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th> Library   </th>
+<th align="right"> Score </th>
+<th> Notes                                     </th>
+<th align="right"> Running Tally </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td> Retrofit  </td>
+<td align="right">    +1 </td>
+<td>                                           </td>
+<td align="right">             1 |</td>
+</tr>
+<tr>
+<td></td>
+<td> Volley    </td>
+<td align="right">    -1 </td>
+<td> Not available in modern dependency tools. </td>
+<td align="right">            -1 |</td>
+</tr>
+<tr>
+<td></td>
+<td> ion       </td>
+<td align="right">    +1 </td>
+<td>                                           </td>
+<td align="right">             1 |</td>
+</tr>
+<tr>
+<td></td>
+<td> Robospice </td>
+<td align="right">     0 </td>
+<td>                                           </td>
+<td align="right">             0 |</td>
+</tr>
+<tr>
+<td></td>
+<td> Picasso   </td>
+<td align="right">    +1 </td>
+<td>                                           </td>
+<td align="right">             1 |</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>Repository</h2>
+
+<p>I&rsquo;ve committed the source code for this example up to <a href="https://github.com/TippingCanoe/network-library-test/releases/tag/step-2">Github</a>.</p>
+
+<h3>Next steps</h3>
+
+<p>Next, we&rsquo;re going to look at performing basic REST requests in the different frameworks.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Android networking libraries - Part 1: Rest API Testbed.]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/"/>
+    <updated>2014-01-24T08:39:46-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries</id>
+    <content type="html"><![CDATA[<h2>Preamble</h2>
+
+<p>Over the last few months here at <a href="http://tippingcanoe.com/">Tipping Canoe</a> we&rsquo;ve really been trying to up our Android development game. Our primary web-language, <a href="http://www.php.net/">PHP</a> has been going through somewhat of a renaissance, largely spurred by usage of <a href="https://getcomposer.org/">Composer</a> to think of your Application as a set of small, reusable, and interchangeable components controlled by a proper dependency management system. The Android world seems to be lagging behind on this, with a vast majority of tutorials online (including <a href="http://developer.android.com/tools/support-library/setup.html">loads from Google</a>) suggesting that manually copying <code>.jar</code> files around is a sane way of managing your Application&rsquo;s dependencies.</p>
+
+<p>Surround your pullquote like this {" text to be quoted "}</p>
+
+<p>Since this change, the quality and quantity of open source Android libraries is slowly slowly starting to grow, and it&rsquo;s an important part of our job to vet what&rsquo;s available out there to make sure we&rsquo;re making the right decisions &mdash; which lead me to this experiment. A common theme across all of our current Applications is that they all rely on and communicate with a remote REST client and retrieve images and other resources from remote locations.</p>
+
+<h2>Contenders</h2>
+
+<p>After a bit or lurking in <a href="http://www.reddit.com/r/androiddev/">/r/androiddev</a>, here are what I believe to be the contenders.</p>
+
+<p>For networking/REST;</p>
+
+<ol>
+<li><a href="http://square.github.io/retrofit/">Retrofit</a> by Square.</li>
+<li><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> by Google.</li>
+<li><a href="http://github.com/koush/ion">ion</a> by Koushik Dutta.</li>
+<li><a href="http://github.com/octo-online/robospice">Robospice</a> by Octo Technology.</li>
+</ol>
+
+
+<p>For image loading;</p>
+
+<ol>
+<li><a href="http://developers.google.com/events/io/sessions/325304728">Volley</a> by Google.</li>
+<li><a href="http://github.com/koush/ion">ion</a> by Koushik Dutta.</li>
+<li><a href="http://square.github.io/picasso/">Picasso</a> by Square.</li>
+</ol>
+
+
+<h2>Testbed</h2>
+
+<p>To accurately compare these libraries, we&rsquo;re going to need a simple testbed to act as a REST server. Lately, we&rsquo;ve been using <a href="http://laravel.com/">Laravel 4</a>, a PHP framework, for lots of our API development, so I&rsquo;m going to build a quick testbed using it.</p>
+
+<p><code>bash
+composer create-project laravel/laravel testbed --prefer-dist
+</code></p>
+
+<h3>Tables</h3>
+
+<p>First, we&rsquo;re going to need a database to save our results to. For quick bootup, we&rsquo;re just going to go into the <code>/app/config/database.php</code> and setup a SQLite database.</p>
+
+<p><code>php
+'default' =&gt; 'sqlite',
+</code></p>
+
+<p>Then we&rsquo;ll need to create some database tables for some Models we&rsquo;re going to need storage for.</p>
+
+<p><code>bash
+php artisan migrate:make create_users_table --create=users
+php artisan migrate:make create_requests_table --create=requests
+</code></p>
+
+<p>We&rsquo;ll add some information to those tables.</p>
+
+<p>``` php
+Schema::create(&lsquo;users&rsquo;, function(Blueprint $table)
+{</p>
+
+<pre><code>$table-&gt;increments('id');
+$table-&gt;string('username');
+$table-&gt;string('email');
+$table-&gt;boolean('is_admin');
+$table-&gt;timestamps();
+</code></pre>
+
+<p>});</p>
+
+<p>Schema::create(&lsquo;requests&rsquo;, function(Blueprint $table)
+{</p>
+
+<pre><code>$table-&gt;increments('id');
+$table-&gt;integer('client_id')-&gt;unique();
+$table-&gt;enum('method', ['GET', 'POST']);
+$table-&gt;string('path');
+$table-&gt;string('parameters');
+$table-&gt;enum('engine', ['retrofit', 'volley', 'ion', 'robospice']);
+$table-&gt;timestamp('start_time');
+$table-&gt;timestamp('end_time');
+$table-&gt;timestamps();
+</code></pre>
+
+<p>});
+```</p>
+
+<p>And we&rsquo;ll run those migrations to actually create the tables.</p>
+
+<p><code>bash
+php artisan migrate
+</code></p>
+
+<h3>Models</h3>
+
+<p>Now that we&rsquo;ve got storage rolling, we&rsquo;ll need to make some Models.</p>
+
+<p>``` php
+class Request extends Eloquent {</p>
+
+<pre><code>protected $table = 'requests';
+public $timestamps = true;
+protected $softDelete = false;
+</code></pre>
+
+<p>}</p>
+
+<p>class User extends Eloquent {</p>
+
+<pre><code>protected $table = 'users';
+public $timestamps = true;
+protected $softDelete = false;
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Routes</h3>
+
+<p>And now we&rsquo;ll add some REST routes to the <code>/app/routes.php</code> file.<br/>
+<em>Note: If you add code into your routes file like this, it&rsquo;ll make web-developers cry. Use Controllers.</em></p>
+
+<p>``` php
+$startTime = time();</p>
+
+<p>Route::filter(&lsquo;requestEnd&rsquo;, function($route, $request, $response, $startTime) {</p>
+
+<pre><code>$requestTiming = new RequestTiming(Input::all());
+$requestTiming-&gt;method = $request-&gt;server('REQUEST_METHOD');
+$requestTiming-&gt;path = $request-&gt;path();
+$requestTiming-&gt;parameters = json_encode(Input::all());
+$requestTiming-&gt;start_time = date("Y-m-d H:m:s", $startTime);
+$requestTiming-&gt;end_time = date("Y-m-d H:m:s");
+$requestTiming-&gt;save();
+</code></pre>
+
+<p>});</p>
+
+<p>Route::group([&lsquo;prefix&rsquo; => &lsquo;api&rsquo;, &lsquo;after&rsquo; => &lsquo;requestEnd:&rsquo; . $startTime], function() {</p>
+
+<pre><code>// Get some sample JSON
+Route::get('/', function() {
+
+    return Response::json("Hello World!");
+});
+
+// Get an array of all Users
+Route::get('/user', function() {
+    $users = User::all();
+
+    return Response::json($users);
+});
+
+// Get a specific User
+Route::get('/user/{id}', function($id) {
+    $user = User::findOrFail($id);
+
+    return Response::json($user);
+});
+
+// Create a new User
+Route::post('/user', function() {
+    $user = User::create(Input::all());
+
+    if ( $avatar = Input::hasFile('avatar') ) {
+        $avatar-&gt;move(storage_path(), "avatar_" . $user-&gt;id . "." . $avatar-&gt;getClientOriginalExtension());
+    }
+
+    return Response::json($user);
+});
+
+// Update a User
+Route::post('/user/{id}', function($id) {
+    $user = User::findOrFail($id);
+    $user-&gt;update(Input::all());
+
+    return Response::json($user);
+});
+</code></pre>
+
+<p>});
+```</p>
+
+<h2>Repository</h2>
+
+<p>I&rsquo;ve committed the source code for this example up to <a href="http://github.com/TippingCanoe/rest-api-testbed">Github</a>.</p>
+
+<h2>Next steps</h2>
+
+<p>Next, we&rsquo;re going to move over to Android and get these libraries installed!</p>
+]]></content>
+  </entry>
+  
+</feed>

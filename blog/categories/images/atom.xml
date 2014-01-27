@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: images | Up The Creek]]></title>
+  <link href="http://upthecreek.tippingcanoe.com/blog/categories/images/atom.xml" rel="self"/>
+  <link href="http://upthecreek.tippingcanoe.com/"/>
+  <updated>2014-01-27T10:33:00-06:00</updated>
+  <id>http://upthecreek.tippingcanoe.com/</id>
+  <author>
+    <name><![CDATA[Tipping Canoe]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Imager 2.0]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/imager-2-dot-0/"/>
+    <updated>2014-01-24T07:58:45-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/24/imager-2-dot-0</id>
+    <content type="html"><![CDATA[<p>My project for today is going to be to rewrite our imaging library to reflect improvements in package, code and schema conventions that have come up over the past while.</p>
+
+<h2>1.0</h2>
+
+<p>Prior to today, our imaging library had two major iterations.  The first was created by our 6min team, however it never ended up being used for any projects.</p>
+
+<p>The second iteration had several incremental changes added to support functionality we needed.  Imager turned out to be fairly useful as a result and is now used in <a href="http://www.urlaubspiraten.de">pirateship</a> and <a href="http://www.refash.net">ReFash</a>.</p>
+
+<p>Because the first never really saw light of day, I consider these two passes to be the &ldquo;1.0&rdquo; branch.</p>
+
+<p>So first thing&rsquo;s first, I created a &ldquo;1.0&rdquo; branch in git and tagged it with a version of &ldquo;1.0.0&rdquo;.  The third version indicator isn&rsquo;t just for minor changes, but also because git doesn&rsquo;t allow branch and tag names to collide.</p>
+
+<p>Anyone who is looking to use the old version of imager can now attach to the version &ldquo;1.*&rdquo; and stay up to date with developments there&hellip;</p>
+
+<h2>The future is 2.0</h2>
+
+<p>After the cleanup for 1.0, we&rsquo;re now ready to begin moving forward with 2.0.</p>
+
+<p>I switch back to master, create a new branch and name it 2.0.  I&rsquo;m not going to bother tagging it until we actually have something to try booting as anyone checking out &ldquo;2.0.0&rdquo; would basically end up with whatever state 1.0 is in right now.</p>
+
+<h2>Project Structure &amp; Refactoring</h2>
+
+<p>When refactoring an existing library, it&rsquo;s still useful to keep classes until you know you no longer need them for reference.  So I won&rsquo;t be deleting anything until I&rsquo;m certain it&rsquo;s behind me.</p>
+
+<h3>Dependencies</h3>
+
+<p>The first thing to change in Imager will be the utility library upon which it&rsquo;s built.  Originally it used the package <code>gregwar/image</code>, however I think that project duplicates the work found in <code>intervention/image</code> and isn&rsquo;t updated as frequently.</p>
+
+<h3>Class &amp; Namespace Structure</h3>
+
+<p>The naming convention used in imager needs a quick tweak just to be less redundant and more meaningful within itself.  Keeping in mind rules of orthogonality, I&rsquo;ve renamed the service class to &ldquo;Service&rdquo; and the service provider class to &ldquo;ServiceProvider&rdquo;.  They now have a better semantic meaning when read in the full namespace: <code>SixMinutes\Imager\Service</code> and <code>SixMinutes\Imager\ServiceProvider</code>.</p>
+
+<p><em>Don&rsquo;t fret over the possibility of duplicate class names across a whole project because this is the point of namespacing.  You can always alias in-scope which is where any meaning originates from.</em></p>
+
+<h3>Traits &amp; Interfaces</h3>
+
+<p>Traits move into the &ldquo;Model&rdquo; directory and become suffixed with &ldquo;Impl&rdquo;.  Interfaces are created with the old trait name to represent the signatures of the trait&rsquo;s presence.  This allows us to leverage some strong typing within PHP and good OO design principles.</p>
+
+<p><em>While traits add functionality declaratively, it&rsquo;s important to remember that they don&rsquo;t impact the type of an object.</em></p>
+
+<p>So <code>Imageable</code> is now an interface. <code>ImageableImpl</code> is now a Trait that fulfills the interface.  Later on, you&rsquo;ll see how this strong typing helps us when working in <code>Service</code> and contributes towards a clear development workflow.</p>
+
+<p>We&rsquo;ll be working with the trait and interface over the course of things.</p>
+
+<h3>Schema &amp; Migration</h3>
+
+<p>The old imager schema stored every image it generated in the database.  This obvoiusly causes issues as well as confusion with duplication as well as limiting us to profiles that have already been generated.  There&rsquo;s also issues with profiles being generated that never get used.</p>
+
+<p>One of the main goals of this rewrite is to change imager&rsquo;s behaviour to be on-demand and to only concern ourselves with original images during storage.  This one simple rule saves us from a lot of complexity down the line by removing the database from the equation when dealing with manipulations.</p>
+
+<p>I&rsquo;ve created a basic schema that stores the image along with some metadata about it:</p>
+
+<ul>
+<li>We are keeping the notion of slots which will give us the ability to assign position information to images grouped by the <code>Imageable</code> type and ID combination.
+We&rsquo;ll also be holding onto the average colour information as that&rsquo;s useful for clients to have and possibly even analysis.</li>
+<li>Additional fields may come along, but until we make the first tagged release, we can always amend the migration.</li>
+<li>Width and height of the source file itself are handy for calculating eligibility for use and ratios, so that will be made available for querying.</li>
+</ul>
+
+
+<h3>Data Access</h3>
+
+<p>I&rsquo;m also adding repositories for the service layer to leverage.  This will allow us to keep some of the more elaborate eloquent code away from business-thinking.  I will however be retaining the leaky abstraction so that we can leverage late-executed queries and named scopes.  This keeps the libray rooted in it&rsquo;s dependencies on Laravel and Eloquent.</p>
+
+<p>Don&rsquo;t forget, repositories must be bound in the service provider to their interface abstract!</p>
+
+<h3>IoC</h3>
+
+<p>Wiring up the IoC for this project is a little more interesting than most projects because intervention claims to support Laravel 4.  Unfortunately, they&rsquo;ve accidentally bundled their data object with their service and so they have to use a custom binding that bypasses all constructor parameters.</p>
+
+<p>In essence, their <code>Image</code> class has two modes.  One as an instance of the data modelling an image, and another as a service that&rsquo;s capable of working with instances of <code>Image</code>.  This is not a subtle distinction and I&rsquo;ve made a ticket in their github tracker outlining such.</p>
+
+<p>Because of this, they have to manually wire up their service, which I have no use for so I&rsquo;ll be handling it myself.  The nice thing about this is that it spares any user of this library from having to add two service providers.  We also insulate ourselves from the risk of the service accidentally accumulating any state over the course of usage; Each request for an instance of intervention will result in a new &ldquo;service&rdquo; being made.</p>
+
+<p>One other interesting note is that because we have lots of settings to assign to the service from Laravel, we want to do a mini factory pattern inside of our own <code>Service</code>&rsquo;s binding.  This lets us take config settings from the Laravel environment without creating any bindings to how Laravel does it&rsquo;s configuration.  Sadly, this is because Laravel doesn&rsquo;t allow for any type of setter-injection bindings.</p>
+
+<h2>Features</h2>
+
+<p>Besides a lot of cleanup and simplification, a few improvements are being introduced in Imager 2.0.</p>
+
+<h3>Pluggables</h3>
+
+<p>I&rsquo;ve come up with a little pattern for the drivers in Imager.  The basic gist of it is that the configuration indicates a class, abstract or name binding which gets resolved out of the IoC.  Then, each key in the configuration array underneath that name gets turned into a setter method call on the driver.  This gives plugin authors lots of flexibility.  There&rsquo;s not much really to doing this, so I&rsquo;m not sure if a base class is warranted, although I&rsquo;ll keep my eyes open for any opportunity to reduce duplication going on there.</p>
+
+<h4>Storage</h4>
+
+<p>Storage in imager 1.0 while configurable was also hard-coded and offered no way to separate the generation of URLs by storage provider.  Imager 2.0 alleviates this by allowing for entire drivers to be authored and specified.</p>
+
+<h4>Processing Filters</h4>
+
+<p>Similar to storage, image filtering was configurable but also very rigid.  Order of filters as well as the ability to create new ones was fairly limited.  The main difference between the filter and storage driver configuration approaches is that the filters don&rsquo;t key by the type.  This allows the same filter to appear twice in a chain.</p>
+
+<p>Configuration of processing filters is also important to note as it will be sets of filters that are used to key and generate derived images from their original.</p>
+
+<h3>Batching</h3>
+
+<p>When working with large change sets &ndash; be it from front end or API &ndash; there needs to be a standard structure to avoid form-handling being mixed in with image operations.  For this purpose, I&rsquo;ve created a very lightweight batching schema.  The batching schema allows any source to instruct Imager to perform a series of operations to an Imageable within a single request. This is most useful for gallery management where you could be moving, deleting, re-ordering and uploading new images &ndash; even from external sources!</p>
+
+<h2>Conclusion</h2>
+
+<p>There are lots of subtle changes in the functionality of Imager 2.0 that may not seem obvious at first.  The surface area of the library itself has changed to better reflect the operations being performed and the internals are now better prepared for changes in the future.  A lot of the code has been split off from the service into the various filters, drivers, repositories and models making it a much easier read.</p>
+
+<p>For some more examples, check <a href="http://goo.gl/6oiKOR">my presentation on Imager 2.0</a>.</p>
+]]></content>
+  </entry>
+  
+</feed>
