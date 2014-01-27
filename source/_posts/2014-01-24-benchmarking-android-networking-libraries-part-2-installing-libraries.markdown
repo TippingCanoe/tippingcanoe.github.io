@@ -29,13 +29,51 @@ Once the project has booted, a majority of the work will be done in the `build.g
 
 The one improvement that I'd suggest making is changing the `.gitignore` file. If you're working in a team all using Android Studio, there are actually a few settings in projects that you might want to share between your developers. Most `.gitignore` files will have you ignoring the entire `/.idea` folder, so you'll lose things like code style settings, which, in our mind, make sense to enforce and share amongst your team.
 
-{% gist 8605514 %}
+``` text One .gitignore to rule them all
+# Built application files
+/*/build/
+
+# Crashlytics configuations
+com_crashlytics_export_strings.xml
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Gradle generated files
+.gradle/
+
+# Signing files
+.signing/
+
+# User-specific configurations
+.idea/libraries/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+*.iml
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+```
 
 ### Installing Retrofit
 
 ``` groovy
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
+	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.squareup.retrofit:retrofit:1.3.0'
 }
 ```
@@ -62,7 +100,7 @@ And then add Volley.
 
 ``` groovy
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
+	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.android.frameworks:volley:master-SNAPSHOT'
 }
 ```
@@ -71,7 +109,7 @@ dependencies {
 
 ``` groovy
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
+	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.koushikdutta.ion:ion:1.2.1'
 }
 ```
@@ -80,7 +118,7 @@ dependencies {
 
 ``` groovy
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
+	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.octo.android.robospice:robospice:1.4.2'
 }
 ```
@@ -89,7 +127,7 @@ dependencies {
 
 ``` groovy
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
+	compile 'com.android.support:appcompat-v7:+'
 	compile 'com.squareup.picasso:picasso:2.1.1'
 }
 ```
@@ -136,7 +174,7 @@ _debugApk
 ...
 ```
 
-The solution was to top it from attempting to compile that module.
+The solution was to stop it from attempting to compile that module.
 
 ``` groovy
 compile ('com.octo.android.robospice:robospice:1.4.2') {
@@ -146,18 +184,22 @@ compile ('com.octo.android.robospice:robospice:1.4.2') {
 
 ## Scorecard
 
-| Library   | Score | Notes                                     | Running Tally |
-|-----------|------:|-------------------------------------------|--------------:|
-| Retrofit  |    +1 |                                           |             1 |
-| Volley    |    -1 | Not available in modern dependency tools. |            -1 |
-| ion       |    +1 |                                           |             1 |
-| Robospice |     0 |                                           |             0 |
-| Picasso   |    +1 |                                           |             1 |
+Library   | Score | Notes                                     | Running Tally
+----------|------:|-------------------------------------------|-------------:
+Retrofit  |    +1 |                                           |             1
+Volley    |    -1 | Not available in modern dependency tools. |            -1
+ion       |    +1 |                                           |             1
+Robospice |     0 | Generated build errors.                   |             0
+Picasso   |    +1 |                                           |             1
+
+Five Android libraries installed with only minimal configuration hell?
+
+![Not bad](http://www.reactionface.info/sites/default/files/images/YvEN9.png)
 
 ## Repository
 
 I've committed the source code for this example up to [Github](https://github.com/TippingCanoe/network-library-test/releases/tag/step-2).
 
-### Next steps
+## Next steps
 
 Next, we're going to look at performing basic REST requests in the different frameworks.
