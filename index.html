@@ -109,7 +109,7 @@
 
 <h2>Setup</h2>
 
-<p>Stepping back slighty, in the previous post we actually installed the wrong version of Robospice. There&rsquo;s a version specifically built for using alongside Retrofit.</p>
+<p>Stepping back slighty, in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">part 2</a> we actually installed the wrong version of Robospice. There&rsquo;s a version specifically built for using alongside Retrofit.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">compile</span> <span class="s1">&#39;com.octo.android.robospice:robospice-retrofit:1.4.2&#39;</span>
@@ -154,7 +154,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>And we&rsquo;ll also need a Robospice Service class to represent our API. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new GsonBuilder()</code> that we made way up at the beginning of this post.</p>
+<p>And we&rsquo;ll also need a Robospice Service class to represent our API. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new GsonBuilder()</code> that we made in the common setup of <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -197,7 +197,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Note we can also use our Jackson converter with Robospice via Retrofit. Here&rsquo;s how to set it up, but we&rsquo;ll be omitting these examples for the moment. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new ObjectMapper()</code> that we made way up at the beginning of this post.</p>
+<p>Note we can also use our Jackson converter with Robospice via Retrofit. Here&rsquo;s how to set it up, but we&rsquo;ll be omitting these examples for the moment. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new ObjectMapper()</code> that we made in the common setup of <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
