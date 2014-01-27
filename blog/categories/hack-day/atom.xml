@@ -4,7 +4,7 @@
   <title><![CDATA[Category: hack day | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/hack-day/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:13:05-06:00</updated>
+  <updated>2014-01-27T10:14:33-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -216,36 +216,47 @@ getSpiceManager().execute(getUsersRequest, "getUsers", DurationInMillis.ONE_MINU
 
 <h2>Other features</h2>
 
-<ul>
-<li><strong>Cacheing</strong>
-  That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</li>
-<li><strong>Priority</strong>
-  Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.
-  <code>java
-  getUsersRequest.setPriority(SpiceRequest.PRIORITY_HIGH);
- </code></li>
-<li><p><strong>Cancelling</strong>
-  Requests can be cancelled in a few ways. The first is to use the request itself.</p>
+<h4>Cacheing</h4>
 
-<p>  <code>java
-  getUsersRequest.cancel();
- </code></p>
+<pre><code>That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we're just using a dumb string `"getUsers"`, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn't actually trigger any network activity.
+</code></pre>
 
-<p>  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.</p>
+<h4>Priority</h4>
 
-<p>  <code>java
-  spiceManager.cancel("getUsers");
- </code></p></li>
-<li><p><strong>Retrying</strong>
-  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.</p>
+<pre><code>Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.
+``` java
+getUsersRequest.setPriority(SpiceRequest.PRIORITY_HIGH);
+```
+</code></pre>
 
-<p>  <code>java
-  getUsersRequest.setRetryPolicy(YourRetryPolicy);
- </code></p></li>
-<li><p><strong>Image loading</strong>
-  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</p></li>
-</ul>
+<h4>Cancelling</h4>
 
+<pre><code>Requests can be cancelled in a few ways. The first is to use the request itself.
+
+``` java
+getUsersRequest.cancel();
+```
+
+But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.
+
+``` java
+spiceManager.cancel("getUsers");
+```
+</code></pre>
+
+<h4>Retrying</h4>
+
+<pre><code>If requests fail (for example, the user's network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default [`DefaultRetryPolicy`](https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java) exists for requests by default, but you can implement your own by implementing [`RetryPolicy`](https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java).
+
+``` java
+getUsersRequest.setRetryPolicy(YourRetryPolicy);
+```
+</code></pre>
+
+<h4>Image loading</h4>
+
+<pre><code>Robospice *does* support downloading images, but does so by requiring you to use a [`UI SpiceList`](https://github.com/octo-online/robospice/wiki/UI-SpiceList-module) that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.
+</code></pre>
 
 <h2>Thoughts</h2>
 
