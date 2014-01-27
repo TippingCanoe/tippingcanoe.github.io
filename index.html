@@ -107,7 +107,7 @@
 
 <p>Setup for our POJO objects is the same as described in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
 
-<h3>Setup</h3>
+<h2>Setup</h2>
 
 <p>Stepping back slighty, in the previous post we actually installed the wrong version of Robospice. There&rsquo;s a version specifically built for using alongside Retrofit.</p>
 
@@ -251,7 +251,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Forming a request</h3>
+<h2>Forming a request</h2>
 
 <p>Robospice uses classes to represent requests and responses, so we&rsquo;ll need to create one for each pair.</p>
 
@@ -282,7 +282,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Handling a response</h3>
+<h2>Handling a response</h2>
 
 <p>Responses go into each Activity (or Fragment) that&rsquo;s listening for the response. Conceptually, this makes a lot of sense &ndash; requests are general purpose and likely reused throughout the Application, and responses need UI work that&rsquo;s specific to that situation.</p>
 
@@ -364,7 +364,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Executing a request</h3>
+<h2>Executing a request</h2>
 
 <p>And then we just need to add a line to instantiate and trigger the request and pipe the result to the response.</p>
 
@@ -375,7 +375,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Other features</h3>
+<h2>Other features</h2>
 
 <ul>
 <li><p>Cacheing
@@ -409,7 +409,7 @@
 </ul>
 
 
-<h3>Thoughts</h3>
+<h2>Thoughts</h2>
 
 <p>That was a lot of work and, possibly, a lot of duplication between Retrofit and Robospice. Let&rsquo;s imagine that the &lsquo;/users&rsquo; route of our API suddenly changes and adds a parameter to toggle some functionality. In this example, we would need to touch <code>public interface Testbed</code>, <code>public class GetUsersRequest</code>, and our Activity. Here be dragons.</p>
 
@@ -551,13 +551,7 @@ Jackson
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>ion</h2>
-
-<h3>Preamble</h3>
-
-<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
-
-<h3>Setup</h3>
+<h2>Setup</h2>
 
 <p>The one thing that we&rsquo;ll need to do is inject our <code>new GsonBuilder()</code> that we built above.</p>
 
@@ -566,7 +560,7 @@ Jackson
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Executing a request</h3>
+<h2>Executing a request</h2>
 
 <p>ion makes it really nice and easy to just work with the basic string response from the API.</p>
 
@@ -607,7 +601,7 @@ Jackson
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Other features</h3>
+<h2>Other features</h2>
 
 <ul>
 <li><p>Progress
@@ -671,7 +665,7 @@ Jackson
 </ul>
 
 
-<h3>Thoughts</h3>
+<h2>Thoughts</h2>
 
 <p>The syntax for ion is certainly attractive. There is very little boilerplate code involved and there are some very attractive helpers that it gives. Of special note is the ability to &ldquo;drop&rdquo; between parsers so easily &ndash; in a perfect world, your API returns beautiful JSON that is consumed by Gson magically&hellip; in the real world, there are perfectly valid scenarios where API responses aren&rsquo;t JSON at all.</p>
 

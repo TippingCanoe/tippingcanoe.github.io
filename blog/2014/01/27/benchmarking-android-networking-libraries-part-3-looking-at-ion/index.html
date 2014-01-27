@@ -192,13 +192,7 @@ Jackson
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>ion</h2>
-
-<h3>Preamble</h3>
-
-<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
-
-<h3>Setup</h3>
+<h2>Setup</h2>
 
 <p>The one thing that we&rsquo;ll need to do is inject our <code>new GsonBuilder()</code> that we built above.</p>
 
@@ -207,7 +201,7 @@ Jackson
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Executing a request</h3>
+<h2>Executing a request</h2>
 
 <p>ion makes it really nice and easy to just work with the basic string response from the API.</p>
 
@@ -248,7 +242,7 @@ Jackson
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Other features</h3>
+<h2>Other features</h2>
 
 <ul>
 <li><p>Progress
@@ -312,7 +306,7 @@ Jackson
 </ul>
 
 
-<h3>Thoughts</h3>
+<h2>Thoughts</h2>
 
 <p>The syntax for ion is certainly attractive. There is very little boilerplate code involved and there are some very attractive helpers that it gives. Of special note is the ability to &ldquo;drop&rdquo; between parsers so easily &ndash; in a perfect world, your API returns beautiful JSON that is consumed by Gson magically&hellip; in the real world, there are perfectly valid scenarios where API responses aren&rsquo;t JSON at all.</p>
 
