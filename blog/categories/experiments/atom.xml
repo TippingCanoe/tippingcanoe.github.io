@@ -4,7 +4,7 @@
   <title><![CDATA[Category: experiments | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/experiments/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:06:50-06:00</updated>
+  <updated>2014-01-27T10:10:21-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -270,12 +270,12 @@ getSpiceManager().execute(getUsersRequest, "getUsers", DurationInMillis.ONE_MINU
 
 <h2>Common setup</h2>
 
-<p>POJO
-: A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
-Gson
-: <a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
-Jackson
-: <a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
+<p><strong>POJO</strong>:
+A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
+<strong>Gson</strong>:
+<a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
+<strong>Jackson</strong>:
+<a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
 
 <p>So, we&rsquo;re going to need a POJO for Gson &amp; Jackson to use to represent our User object.</p>
 
@@ -386,53 +386,64 @@ Future&lt;List<User>> getUsers = Ion.with(getApplicationContext(), &ldquo;@TODO&
 
 <h2>Other features</h2>
 
-<ul>
-<li><p><strong>Progress</strong>
-  ion has some really nice plugins for retrieving the progress of any request.</p></li>
-<li><p><strong>Image loading</strong></p>
+<p><strong>Progress</strong>:
+ion has some really nice plugins for retrieving the progress of any request.
+``` java
+indexRequest</p>
 
-<p>  <code>java
-  Ion.with(yourImageViewHere)
-      .placeHolder(R.drawable.yourPlaceholderGraphicHere)
-      .error(R.drawable.yourErrorGraphicHere)
-      .animateLoad(yourAnimationHere)
-      .animateIn(yourAnimationHere)
-      .centerInside()
-      .resize(100, 200)
-      .transform(MyTransformation)
-      .load("http://example.com/image.png");
- </code></p>
+<pre><code>.progressBar(yourProgressBarHere)
+.progressDialog(yourProgressDialogHere)
+.progress(new ProgressCallback() {
+    @Override
+    public void onProgress(int downloaded, int total) {
+    }
+});
+</code></pre>
 
-<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p></li>
-<li><p><strong>Cancelling requests</strong>
-  Requests can be canncelled individually.</p>
+<p>```</p>
 
-<p>  <code>java
-  getUsers.cancel();
- </code></p>
+<p><strong>Image loading</strong>:
+``` java
+Ion.with(yourImageViewHere)</p>
 
-<p>  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+<pre><code>.placeHolder(R.drawable.yourPlaceholderGraphicHere)
+.error(R.drawable.yourErrorGraphicHere)
+.animateLoad(yourAnimationHere)
+.animateIn(yourAnimationHere)
+.centerInside()
+.resize(100, 200)
+.transform(MyTransformation)
+.load("http://example.com/image.png");
+</code></pre>
 
-<p>  <code>java
-  Ion.getDefault(activity).cancelAll(activity);
- </code></p>
+<p><code>``
+The</code>MyTransformation<code>must be an implementation of [</code>Transform`](<a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java">https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java</a>)</p>
 
-<p>  Or per-group.</p>
+<p><strong>Cancelling requests</strong>:
+Requests can be canncelled individually.  <br/>
+<code>java
+getUsers.cancel();
+</code>
+Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.
+<code>java
+Ion.getDefault(activity).cancelAll(activity);
+</code>
+Or per-group. <br/>
+``` java
+Object usersGroup = new Object();
+Future&lt;List<User>> getUsers = Ion.with(getApplicationContext(), &ldquo;@TODO&rdquo;)</p>
 
-<p>  <code>java
-  Object usersGroup = new Object();
-  Future&lt;List&lt;User&gt;&gt; getUsers = Ion.with(getApplicationContext(), "@TODO")
-      .as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
-      .group(usersGroup)
-      .setCallback(new FutureCallback&lt;List&lt;User&gt;&gt;() {
-          @Override
-          public void onCompleted(Exception e, List&lt;User&gt; result) {
-          }
-      });
-  Ion.getDefault(activity).cancelAll(usersGroup);
- </code></p></li>
-</ul>
+<pre><code>.as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
+.group(usersGroup)
+.setCallback(new FutureCallback&lt;List&lt;User&gt;&gt;() {
+    @Override
+    public void onCompleted(Exception e, List&lt;User&gt; result) {
+    }
+});
+</code></pre>
 
+<p>Ion.getDefault(activity).cancelAll(usersGroup);
+```</p>
 
 <h2>Thoughts</h2>
 

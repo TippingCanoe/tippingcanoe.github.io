@@ -4,7 +4,7 @@
   <title><![CDATA[Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-27T10:06:50-06:00</updated>
+  <updated>2014-01-27T10:10:21-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -354,12 +354,12 @@
 
 <h2>Common setup</h2>
 
-<p>POJO
-: A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
-Gson
-: <a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
-Jackson
-: <a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
+<p><strong>POJO</strong>:
+A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
+<strong>Gson</strong>:
+<a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
+<strong>Jackson</strong>:
+<a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
 
 <p>So, we&rsquo;re going to need a POJO for Gson &amp; Jackson to use to represent our User object.</p>
 
@@ -498,52 +498,95 @@ Jackson
 
 <h2>Other features</h2>
 
-<ul>
-<li><p><strong>Progress</strong>
-  ion has some really nice plugins for retrieving the progress of any request.</p></li>
-<li><p><strong>Image loading</strong></p>
+<p><strong>Progress</strong>:
+ion has some really nice plugins for retrieving the progress of any request.</p>
 
-<p>  <code>java
-  Ion.with(yourImageViewHere)
-      .placeHolder(R.drawable.yourPlaceholderGraphicHere)
-      .error(R.drawable.yourErrorGraphicHere)
-      .animateLoad(yourAnimationHere)
-      .animateIn(yourAnimationHere)
-      .centerInside()
-      .resize(100, 200)
-      .transform(MyTransformation)
-      .load("http://example.com/image.png");
- </code></p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">indexRequest</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">progressBar</span><span class="o">(</span><span class="n">yourProgressBarHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">progressDialog</span><span class="o">(</span><span class="n">yourProgressDialogHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">progress</span><span class="o">(</span><span class="k">new</span> <span class="n">ProgressCallback</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onProgress</span><span class="o">(</span><span class="kt">int</span> <span class="n">downloaded</span><span class="o">,</span> <span class="kt">int</span> <span class="n">total</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p></li>
-<li><p><strong>Cancelling requests</strong>
-  Requests can be canncelled individually.</p>
 
-<p>  <code>java
-  getUsers.cancel();
- </code></p>
+<p></p>
 
-<p>  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+<p><strong>Image loading</strong>:</p>
 
-<p>  <code>java
-  Ion.getDefault(activity).cancelAll(activity);
- </code></p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">yourImageViewHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">placeHolder</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">yourPlaceholderGraphicHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">yourErrorGraphicHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">animateLoad</span><span class="o">(</span><span class="n">yourAnimationHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">animateIn</span><span class="o">(</span><span class="n">yourAnimationHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">centerInside</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">resize</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="mi">200</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">transform</span><span class="o">(</span><span class="n">MyTransformation</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="s">&quot;http://example.com/image.png&quot;</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>  Or per-group.</p>
 
-<p>  <code>java
-  Object usersGroup = new Object();
-  Future&lt;List&lt;User&gt;&gt; getUsers = Ion.with(getApplicationContext(), "@TODO")
-      .as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
-      .group(usersGroup)
-      .setCallback(new FutureCallback&lt;List&lt;User&gt;&gt;() {
-          @Override
-          public void onCompleted(Exception e, List&lt;User&gt; result) {
-          }
-      });
-  Ion.getDefault(activity).cancelAll(usersGroup);
- </code></p></li>
-</ul>
+<p>
+The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p>
+
+<p><strong>Cancelling requests</strong>:
+Requests can be canncelled individually.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsers</span><span class="o">.</span><span class="na">cancel</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">getDefault</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">cancelAll</span><span class="o">(</span><span class="n">activity</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or per-group.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Object</span> <span class="n">usersGroup</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">();</span>
+</span><span class='line'><span class="n">Future</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="n">getUsers</span> <span class="o">=</span> <span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">&quot;@TODO&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">as</span><span class="o">(</span><span class="k">new</span> <span class="n">TypeToken</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;(){})</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">group</span><span class="o">(</span><span class="n">usersGroup</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setCallback</span><span class="o">(</span><span class="k">new</span> <span class="n">FutureCallback</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCompleted</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">getDefault</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">cancelAll</span><span class="o">(</span><span class="n">usersGroup</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Thoughts</h2>
