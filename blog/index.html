@@ -379,31 +379,26 @@
 <li><p>Cacheing
   That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</p></li>
 <li><p>Priority
-  Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.</p>
-
-<p>  <code>java
+  Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.
+  <code>java
   getUsersRequest.setPriority(SpiceRequest.PRIORITY_HIGH);
  </code></p></li>
-<li><p>Cancelling
-  Requests can be cancelled in a few ways. The first is to use the request itself.</p>
-
-<p>  <code>java
+<li>Cancelling
+  Requests can be cancelled in a few ways. The first is to use the request itself.
+  <code>java
   getUsersRequest.cancel();
- </code></p>
-
-<p>  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.</p>
-
-<p>  <code>java
+ </code>
+  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.
+  <code>java
   spiceManager.cancel("getUsers");
- </code></p></li>
-<li><p>Retrying
-  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.</p>
-
-<p>  <code>java
+ </code></li>
+<li>Retrying
+  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.
+  <code>java
   getUsersRequest.setRetryPolicy(YourRetryPolicy);
- </code></p></li>
-<li><p>Image loading
-  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</p></li>
+ </code></li>
+<li>Image loading
+  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</li>
 </ul>
 
 
@@ -601,9 +596,8 @@ Jackson
 
 <ul>
 <li><p>Progress
-  ion has some really nice plugins for retrieving the progress of any request</p>
-
-<p>  &#8220;` java
+  ion has some really nice plugins for retrieving the progress of any request
+  &#8220;` java
   indexRequest
       .progressBar(yourProgressBarHere)
       .progressDialog(yourProgressDialogHere)
@@ -616,9 +610,8 @@ Jackson
 </code></pre>
 
 <p>  &#8220;`</p></li>
-<li><p>Image loading</p>
-
-<p>  <code>java
+<li>Image loading
+  <code>java
   Ion.with(yourImageViewHere)
       .placeHolder(R.drawable.yourPlaceholderGraphicHere)
       .error(R.drawable.yourErrorGraphicHere)
@@ -628,25 +621,19 @@ Jackson
       .resize(100, 200)
       .transform(MyTransformation)
       .load("http://example.com/image.png");
- </code></p>
-
-<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p></li>
-<li><p>Cancelling requests
-  Requests can be canncelled individually.</p>
-
-<p>  <code>java
+ </code>
+  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></li>
+<li>Cancelling requests
+  Requests can be canncelled individually.
+  <code>java
   getUsers.cancel();
- </code></p>
-
-<p>  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
-
-<p>  <code>java
+ </code>
+  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.
+  <code>java
   Ion.getDefault(activity).cancelAll(activity);
- </code></p>
-
-<p>  Or per-group.</p>
-
-<p>  <code>java
+ </code>
+  Or per-group.
+  <code>java
   Object usersGroup = new Object();
   Future&lt;List&lt;User&gt;&gt; getUsers = Ion.with(getApplicationContext(), "@TODO")
       .as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
@@ -657,7 +644,7 @@ Jackson
           }
       });
   Ion.getDefault(activity).cancelAll(usersGroup);
- </code></p></li>
+ </code></li>
 </ul>
 
 
