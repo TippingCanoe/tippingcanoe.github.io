@@ -9,7 +9,7 @@
   <meta name="author" content="Tipping Canoe">
 
   
-  <meta name="description" content="Preamble Where we last left our heroes, we&rsquo;d setup a testbed using Laravel 4 to compare the speeds Android networking libraries. This time &hellip;">
+  <meta name="description" content="Preamble Last time, we took a look at ion contenders installed. This time, we&rsquo;re going to take a closer look at the syntax and features of &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,622 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-27T09:01:14-06:00" pubdate data-updated="true">Jan 27<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Preamble</h2>
+
+<p>Last time, we took a look at ion <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">contenders installed</a>. This time, we&rsquo;re going to take a closer look at the syntax and features of another contender, Robospice.</p>
+
+<p>After looking at <a href="https://github.com/octo-online/RoboSpice-samples">some samples</a> provided by the Robospice team, it&rsquo;s becoming apparent that Robospice is a bit different than the other contenders. Whereas something like Retrofit is concerned with making requests and processing the results, Robospice is more concerned with the mechanics of where and how those requests take place, and what is done with the responses to make future requests easier. Robospice proposes that <a href="http://developer.android.com/guide/components/services.html">Android Services</a> are where networking should occur, rather than in a simple separate thread.</p>
+
+<p>Robospice can be used with one of many of what it calls <code>SpiceServices</code> and each of those bring support for particular features to the table. Interestingly enough, there&rsquo;s a pre-built <a href="https://github.com/octo-online/robospice/wiki/Retrofit-module"><code>SpiceService</code> for Retrofit</a>, so we&rsquo;re going to jump on that and see what Robospice really brings to the table ontop of Retrofit.</p>
+
+<h2>Common setup</h2>
+
+<p>Setup for our POJO objects is the same as described in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
+
+<h3>Setup</h3>
+
+<p>Stepping back slighty, in the previous post we actually installed the wrong version of Robospice. There&rsquo;s a version specifically built for using alongside Retrofit.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">compile</span> <span class="s1">&#39;com.octo.android.robospice:robospice-retrofit:1.4.2&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Since we&rsquo;re using Retrofit under the hood, we&rsquo;ll need to create an interface for our API.<br/>
+*Note: This code snippet returns the result directly, as opposed to using a callback. Retrofit uses this as a mechanic to determine wheter to execute the request synchronously (which it does when values are returned) or asynchronously (when values are consumed by a callback). In the Robospice world, the request is already being done in a Service, so there is no need to spawn a separate thread.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">Testbed</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@GET</span><span class="o">(</span><span class="s">&quot;/&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getIndex</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@GET</span><span class="o">(</span><span class="s">&quot;/user&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="nf">getUsers</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@GET</span><span class="o">(</span><span class="s">&quot;/user/{id}&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">User</span> <span class="nf">getUser</span><span class="o">(</span><span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="kt">int</span> <span class="n">userId</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@POST</span><span class="o">(</span><span class="s">&quot;/user&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">User</span> <span class="nf">createUser</span><span class="o">(</span><span class="nd">@Body</span> <span class="n">User</span> <span class="n">user</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@POST</span><span class="o">(</span><span class="s">&quot;/user/{id}&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">User</span> <span class="nf">updateUser</span><span class="o">(</span><span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="kt">int</span> <span class="n">userId</span><span class="o">,</span> <span class="nd">@Body</span> <span class="n">User</span> <span class="n">user</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we&rsquo;ll also need a Robospice Service class to represent our API. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new GsonBuilder()</code> that we made way up at the beginning of this post.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestbedSpiceService</span> <span class="kd">extends</span> <span class="n">RetrofitGsonSpiceService</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">BASE_URL</span> <span class="o">=</span> <span class="s">&quot;@TODO&quot;</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">addRetrofitInterface</span><span class="o">(</span><span class="n">Testbed</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">String</span> <span class="nf">getServerUrl</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">BASE_URL</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">Converter</span> <span class="nf">createConverter</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">new</span> <span class="nf">GsonConverter</span><span class="o">(</span><span class="n">gson</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note we can also use our Jackson converter with Robospice via Retrofit. Here&rsquo;s how to set it up, but we&rsquo;ll be omitting these examples for the moment. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new ObjectMapper()</code> that we made way up at the beginning of this post.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestbedSpiceServiceJackson</span> <span class="kd">extends</span> <span class="n">RetrofitJackson2SpiceService</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">BASE_URL</span> <span class="o">=</span> <span class="s">&quot;@TODO&quot;</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">addRetrofitInterface</span><span class="o">(</span><span class="n">Testbed</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">String</span> <span class="nf">getServerUrl</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">BASE_URL</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">Converter</span> <span class="nf">createConverter</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">new</span> <span class="nf">JacksonConverter</span><span class="o">(</span><span class="n">jackson</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That new service will need to be declard in our <code>AndroidManifest.xml</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;service</span>
+</span><span class='line'>  <span class="na">android:name=</span><span class="s">&quot;TestbedSpiceService&quot;</span>
+</span><span class='line'>  <span class="na">android:exported=</span><span class="s">&quot;false&quot;</span> <span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Forming a request</h3>
+
+<p>Robospice uses classes to represent requests and responses, so we&rsquo;ll need to create one for each pair.</p>
+
+<p>Requests go into their own Class files.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">GetUsersRequest</span> <span class="kd">extends</span> <span class="n">RetrofitSpiceRequest</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;,</span> <span class="n">Testbed</span><span class="o">&gt;</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">GetUsersRequest</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;.</span><span class="na">class</span><span class="o">,</span> <span class="n">Testbed</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="nf">loadDataFromNetwork</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nf">getService</span><span class="o">().</span><span class="na">getIndex</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Handling a response</h3>
+
+<p>Responses go into each Activity (or Fragment) that&rsquo;s listening for the response. Conceptually, this makes a lot of sense &ndash; requests are general purpose and likely reused throughout the Application, and responses need UI work that&rsquo;s specific to that situation.</p>
+
+<p>Robospice requires some additions to our Activities in order for that to function. The idea of having boilerplate code laying around to support a Library doesn&rsquo;t sound that great, but it&rsquo;s minimal for now. Of course, we&rsquo;re going to be clever developers and add this into an abstract Activity subclass so that we don&rsquo;t have to copy/paste it into all of our Activities down the line.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">SpicedActivity</span> <span class="kd">extends</span> <span class="n">Activity</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">SpiceManager</span> <span class="n">spiceManager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpiceManager</span><span class="o">(</span><span class="n">TestbedSpiceService</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onStart</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">spiceManager</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onStart</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onStop</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">spiceManager</span><span class="o">.</span><span class="na">shouldStop</span><span class="o">();</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onStop</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">SpiceManager</span> <span class="nf">getSpiceManager</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">spiceManager</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And then we&rsquo;ll add the handling of the response from the service in our Activity that extends the <code>SpicedActivity</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="err">@</span><span class="nc">TODO</span> <span class="kd">extends</span> <span class="n">SpicedActivity</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">GetUsersRequest</span> <span class="n">getUsersRequest</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">GetUsersRequestListener</span> <span class="kd">implements</span> <span class="n">RequestListener</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onRequestFailure</span><span class="o">(</span><span class="n">SpiceException</span> <span class="n">spiceException</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onRequestSuccess</span><span class="o">(</span><span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Executing a request</h3>
+
+<p>And then we just need to add a line to instantiate and trigger the request and pipe the result to the response.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsersRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GetUsersRequest</span><span class="o">();</span>
+</span><span class='line'><span class="n">getSpiceManager</span><span class="o">().</span><span class="na">execute</span><span class="o">(</span><span class="n">getUsersRequest</span><span class="o">,</span> <span class="s">&quot;getUsers&quot;</span><span class="o">,</span> <span class="n">DurationInMillis</span><span class="o">.</span><span class="na">ONE_MINUTE</span><span class="o">,</span> <span class="k">new</span> <span class="n">GetUsersRequestListener</span><span class="o">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Other features</h3>
+
+<ul>
+<li><p>Cacheing
+  That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</p></li>
+<li><p>Priority
+  Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.</p>
+
+<p>  <code>java
+  getUsersRequest.setPriority(SpiceRequest.PRIORITY_HIGH);
+ </code></p></li>
+<li><p>Cancelling
+  Requests can be cancelled in a few ways. The first is to use the request itself.</p>
+
+<p>  <code>java
+  getUsersRequest.cancel();
+ </code></p>
+
+<p>  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.</p>
+
+<p>  <code>java
+  spiceManager.cancel("getUsers");
+ </code></p></li>
+<li><p>Retrying
+  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.</p>
+
+<p>  <code>java
+  getUsersRequest.setRetryPolicy(YourRetryPolicy);
+ </code></p></li>
+<li><p>Image loading
+  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</p></li>
+</ul>
+
+
+<h3>Thoughts</h3>
+
+<p>That was a lot of work and, possibly, a lot of duplication between Retrofit and Robospice. Let&rsquo;s imagine that the &lsquo;/users&rsquo; route of our API suddenly changes and adds a parameter to toggle some functionality. In this example, we would need to touch <code>public interface Testbed</code>, <code>public class GetUsersRequest</code>, and our Activity. Here be dragons.</p>
+
+<p>On the other hand, it&rsquo;s possible that this work is worth it. The Robospice team seems <a href="https://raw.github.com/octo-online/robospice/master/gfx/RoboSpice-InfoGraphics.png">confident that Services are the way to go</a> for networking request, and the cacheing features are a nice bonus.</p>
+
+<p>The fact that Robospice can work with a variety of Services makes it so their documentation is quite difficult to parse. You&rsquo;ll find some examples designed for Spring, some for OkHTTP, etc. We found that the guides and documentation do not make it clear how to swap between these Services, and can easily lead you astray.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">Benchmarking Android Networking Libraries - Part 3: Looking at Ion</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-27T09:00:59-06:00" pubdate data-updated="true">Jan 27<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Preamble</h2>
+
+<p>Last time, we managed to get all of our <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">contenders installed</a>. This time, we&rsquo;re going to take a closer look at the syntax and features of one of our contenders, ion.</p>
+
+<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
+
+<h2>Common setup</h2>
+
+<p>POJO
+: A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
+Gson
+: <a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
+Jackson
+: <a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
+
+<p>So, we&rsquo;re going to need a POJO for Gson &amp; Jackson to use to represent our User object.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">User</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">int</span> <span class="n">id</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">username</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@SerializedName</span><span class="o">(</span><span class="s">&quot;email&quot;</span><span class="o">);</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">emailAddress</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">boolean</span> <span class="n">isAdmin</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Constructor/getters/setters ommitted</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The one line there that might not look familliar is the <code>@SerializedName</code> annotation. If you remember back to <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">part one</a>, our testbed&rsquo;s User object had the property for the email address as <code>email</code>, not <code>emailAddress</code>. This annotation will let us override it.</p>
+
+<p>You&rsquo;ll also remember that the User object had a property called <code>is_admin</code>, not <code>isAdmin</code>. We could fix this in the same way as the email address, but Gson provides a nice way of altering underscore/camelcaseing in a standard way.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Gson</span> <span class="n">gson</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GsonBuilder</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setFieldNamingPolicy</span><span class="o">(</span><span class="n">FieldNamingPolicy</span><span class="o">.</span><span class="na">LOWER_CASE_WITH_UNDERSCORES</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">create</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Of course, there are loads more features, so you should be familliar with <a href="https://sites.google.com/site/gson/gson-user-guide">how to work with Gson</a> as many of the REST libraries we&rsquo;re going to be testing use it.</p>
+
+<p>And just to keep the annotations separate in our minds, we&rsquo;ll create a separate class for Jackson.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@JsonIgnoreProperties</span><span class="o">(</span><span class="n">ignoreUnknown</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@JsonAutoDetect</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserJackson</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">int</span> <span class="n">id</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">username</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span><span class="o">(</span><span class="n">value</span> <span class="o">=</span> <span class="s">&quot;email&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">emailAddress</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">boolean</span> <span class="n">isAdmin</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Constructor/getters/setters ommitted</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A few more annotations required there, so let&rsquo;s go through them.
+* <code>@JsonIgnoreProperties(ignoreUnknown=true)</code> simply flags Jackson to say that if there are additional properties in the JSON that aren&rsquo;t a part of this Object to not worry about it. Just ignore them.
+* <code>@JsonAutoDetect</code> signals Jackson that we want it to automatically find mappings between our POJO and JSON.
+* <code>@JsonProperty</code> signals that this property is mapped to JSON. We can also override the name using the <code>value = "foo"</code> syntax.</p>
+
+<p>Same as with GSON, we&rsquo;ll need to apply a strategy to overcome <code>is_admin</code> to <code>isAdmin</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">ObjectMapper</span> <span class="n">jackson</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ObjectMapper</span><span class="o">();</span>
+</span><span class='line'><span class="n">jackson</span><span class="o">.</span><span class="na">setPropertyNamingStrategy</span><span class="o">(</span><span class="n">PropertyNamingStrategy</span><span class="o">.</span><span class="na">CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>ion</h2>
+
+<h3>Preamble</h3>
+
+<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
+
+<h3>Setup</h3>
+
+<p>The one thing that we&rsquo;ll need to do is inject our <code>new GsonBuilder()</code> that we built above.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">getDefault</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">setGson</span><span class="o">(</span><span class="n">gson</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Executing a request</h3>
+
+<p>ion makes it really nice and easy to just work with the basic string response from the API.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">indexRequest</span> <span class="o">=</span> <span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">&quot;@TODO&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">asString</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setCallback</span><span class="o">(</span><span class="k">new</span> <span class="n">FutureCallback</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCompleted</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">,</span> <span class="n">String</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or as a JSONObject or JSONArray using <code>.asJsonObject()</code> or <code>.asJsonArray()</code>. Or as a POJO using Gson.<br/>
+<em>Note: At the time of writing, ion does not have built-in support for Jackson.</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Future</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="n">getUsers</span> <span class="o">=</span> <span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">&quot;@TODO&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">as</span><span class="o">(</span><span class="k">new</span> <span class="n">TypeToken</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;(){})</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setCallback</span><span class="o">(</span><span class="k">new</span> <span class="n">FutureCallback</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCompleted</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Other features</h3>
+
+<ul>
+<li><p>Progress
+  ion has some really nice plugins for retrieving the progress of any request</p>
+
+<p>  &#8220;` java
+  indexRequest
+      .progressBar(yourProgressBarHere)
+      .progressDialog(yourProgressDialogHere)
+      .progress(new ProgressCallback() {
+          @Override
+          public void onProgress(int downloaded, int total) {</p>
+
+<pre><code>      }
+  });
+</code></pre>
+
+<p>  &#8220;`</p></li>
+<li><p>Image loading</p>
+
+<p>  <code>java
+  Ion.with(yourImageViewHere)
+      .placeHolder(R.drawable.yourPlaceholderGraphicHere)
+      .error(R.drawable.yourErrorGraphicHere)
+      .animateLoad(yourAnimationHere)
+      .animateIn(yourAnimationHere)
+      .centerInside()
+      .resize(100, 200)
+      .transform(MyTransformation)
+      .load("http://example.com/image.png");
+ </code></p>
+
+<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p></li>
+<li><p>Cancelling requests
+  Requests can be canncelled individually.</p>
+
+<p>  <code>java
+  getUsers.cancel();
+ </code></p>
+
+<p>  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+
+<p>  <code>java
+  Ion.getDefault(activity).cancelAll(activity);
+ </code></p>
+
+<p>  Or per-group.</p>
+
+<p>  <code>java
+  Object usersGroup = new Object();
+  Future&lt;List&lt;User&gt;&gt; getUsers = Ion.with(getApplicationContext(), "@TODO")
+      .as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
+      .group(usersGroup)
+      .setCallback(new FutureCallback&lt;List&lt;User&gt;&gt;() {
+          @Override
+          public void onCompleted(Exception e, List&lt;User&gt; result) {
+          }
+      });
+  Ion.getDefault(activity).cancelAll(usersGroup);
+ </code></p></li>
+</ul>
+
+
+<h3>Thoughts</h3>
+
+<p>The syntax for ion is certainly attractive. There is very little boilerplate code involved and there are some very attractive helpers that it gives. Of special note is the ability to &ldquo;drop&rdquo; between parsers so easily &ndash; in a perfect world, your API returns beautiful JSON that is consumed by Gson magically&hellip; in the real world, there are perfectly valid scenarios where API responses aren&rsquo;t JSON at all.</p>
+
+<p>However, the fact that ion works in such a loose fashion may come to hurt a project after a long time. In our legacy code, the fact that AndroidAsync events are so &ldquo;easy&rdquo; to program (and ion events seem even easier) has lead to far too much thinking of functions as scripts and not objects &ndash; the proof of this is copy-pasted versions of AndroidAsync events throughout the sourcecode, instead of thinking of the API as an object the way that most of these other libraries do.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -723,42 +1339,6 @@ Luckily, it seems there might be light at the end of the tunnel. Thanks to the <
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/01/21/hello-world/">Hello World</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-01-21T17:08:20-06:00" pubdate data-updated="true">Jan 21<span>st</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Welcome aboard</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
@@ -772,15 +1352,19 @@ Luckily, it seems there might be light at the end of the tunnel. Thanks to the <
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">Benchmarking Android Networking Libraries - Part 3: Looking at ion</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">Benchmarking Android Networking Libraries - Part 2: Installing Libraries</a>
       </li>
     
       <li class="post">
         <a href="/blog/2014/01/24/benchmarking-android-networking-libraries/">Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/21/hello-world/">Hello World</a>
       </li>
     
   </ul>

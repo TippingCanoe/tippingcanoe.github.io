@@ -1,10 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://upthecreek.tippingcanoe.com/blog/2014/01/21/hello-world/</loc>
-        <lastmod>2014-01-21T18:05:32-06:00</lastmod>
-    </url>
-    <url>
         <loc>
             http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/
         </loc>
@@ -17,6 +13,18 @@
         <lastmod>2014-01-24T15:48:40-06:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/
+        </loc>
+        <lastmod>2014-01-27T09:21:05-06:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/
+        </loc>
+        <lastmod>2014-01-27T09:53:06-06:00</lastmod>
+    </url>
+    <url>
         <loc>http://upthecreek.tippingcanoe.com/404.html</loc>
         <lastmod>2014-01-21T17:52:06-06:00</lastmod>
     </url>
@@ -26,15 +34,15 @@
     </url>
     <url>
         <loc>http://upthecreek.tippingcanoe.com/blog/archives/</loc>
-        <lastmod>2014-01-24T15:48:40-06:00</lastmod>
+        <lastmod>2014-01-27T09:53:06-06:00</lastmod>
     </url>
     <url>
         <loc>http://upthecreek.tippingcanoe.com/blog/</loc>
-        <lastmod>2014-01-24T15:48:40-06:00</lastmod>
+        <lastmod>2014-01-27T09:53:06-06:00</lastmod>
     </url>
     <url>
         <loc>http://upthecreek.tippingcanoe.com/</loc>
-        <lastmod>2014-01-24T15:48:40-06:00</lastmod>
+        <lastmod>2014-01-27T09:53:06-06:00</lastmod>
     </url>
     <url>
         <loc>http://upthecreek.tippingcanoe.com/robots.txt</loc>

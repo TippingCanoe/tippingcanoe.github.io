@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android | Up The Creek]]></title>
   <link href="http://upthecreek.tippingcanoe.com/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://upthecreek.tippingcanoe.com/"/>
-  <updated>2014-01-24T15:48:46-06:00</updated>
+  <updated>2014-01-27T09:53:21-06:00</updated>
   <id>http://upthecreek.tippingcanoe.com/</id>
   <author>
     <name><![CDATA[Tipping Canoe]]></name>
@@ -12,6 +12,456 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Android Networking Libraries - Part 4: Looking at Robospice]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/"/>
+    <updated>2014-01-27T09:01:14-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice</id>
+    <content type="html"><![CDATA[<h2>Preamble</h2>
+
+<p>Last time, we took a look at ion <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">contenders installed</a>. This time, we&rsquo;re going to take a closer look at the syntax and features of another contender, Robospice.</p>
+
+<p>After looking at <a href="https://github.com/octo-online/RoboSpice-samples">some samples</a> provided by the Robospice team, it&rsquo;s becoming apparent that Robospice is a bit different than the other contenders. Whereas something like Retrofit is concerned with making requests and processing the results, Robospice is more concerned with the mechanics of where and how those requests take place, and what is done with the responses to make future requests easier. Robospice proposes that <a href="http://developer.android.com/guide/components/services.html">Android Services</a> are where networking should occur, rather than in a simple separate thread.</p>
+
+<p>Robospice can be used with one of many of what it calls <code>SpiceServices</code> and each of those bring support for particular features to the table. Interestingly enough, there&rsquo;s a pre-built <a href="https://github.com/octo-online/robospice/wiki/Retrofit-module"><code>SpiceService</code> for Retrofit</a>, so we&rsquo;re going to jump on that and see what Robospice really brings to the table ontop of Retrofit.</p>
+
+<h2>Common setup</h2>
+
+<p>Setup for our POJO objects is the same as described in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
+
+<h3>Setup</h3>
+
+<p>Stepping back slighty, in the previous post we actually installed the wrong version of Robospice. There&rsquo;s a version specifically built for using alongside Retrofit.</p>
+
+<p><code>groovy
+compile 'com.octo.android.robospice:robospice-retrofit:1.4.2'
+</code></p>
+
+<p>Since we&rsquo;re using Retrofit under the hood, we&rsquo;ll need to create an interface for our API.<br/>
+*Note: This code snippet returns the result directly, as opposed to using a callback. Retrofit uses this as a mechanic to determine wheter to execute the request synchronously (which it does when values are returned) or asynchronously (when values are consumed by a callback). In the Robospice world, the request is already being done in a Service, so there is no need to spawn a separate thread.</p>
+
+<p>``` java
+public interface Testbed {</p>
+
+<pre><code>@GET("/")
+List&lt;String&gt; getIndex();
+
+@GET("/user")
+List&lt;User&gt; getUsers();
+
+@GET("/user/{id}")
+User getUser(@Path("id") int userId);
+
+@POST("/user")
+User createUser(@Body User user);
+
+@POST("/user/{id}")
+User updateUser(@Path("id") int userId, @Body User user);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>And we&rsquo;ll also need a Robospice Service class to represent our API. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new GsonBuilder()</code> that we made way up at the beginning of this post.</p>
+
+<p>```
+public class TestbedSpiceService extends RetrofitGsonSpiceService {</p>
+
+<pre><code>private final static String BASE_URL = "@TODO";
+
+@Override
+public void onCreate() {
+    super.onCreate();
+    addRetrofitInterface(Testbed.class);
+}
+
+@Override
+protected String getServerUrl() {
+    return BASE_URL;
+}
+
+@Override
+protected Converter createConverter() {
+    return new GsonConverter(gson);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Note we can also use our Jackson converter with Robospice via Retrofit. Here&rsquo;s how to set it up, but we&rsquo;ll be omitting these examples for the moment. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new ObjectMapper()</code> that we made way up at the beginning of this post.</p>
+
+<p>``` java
+public class TestbedSpiceServiceJackson extends RetrofitJackson2SpiceService {</p>
+
+<pre><code>private final static String BASE_URL = "@TODO";
+
+@Override
+public void onCreate() {
+    super.onCreate();
+    addRetrofitInterface(Testbed.class);
+}
+
+@Override
+protected String getServerUrl() {
+    return BASE_URL;
+}
+
+@Override
+protected Converter createConverter() {
+    return new JacksonConverter(jackson);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>That new service will need to be declard in our <code>AndroidManifest.xml</code>.</p>
+
+<p>``` xml
+&lt;service</p>
+
+<pre><code>android:name="TestbedSpiceService"
+android:exported="false" /&gt;
+</code></pre>
+
+<p>```</p>
+
+<h3>Forming a request</h3>
+
+<p>Robospice uses classes to represent requests and responses, so we&rsquo;ll need to create one for each pair.</p>
+
+<p>Requests go into their own Class files.</p>
+
+<p>``` java
+public class GetUsersRequest extends RetrofitSpiceRequest&lt;List<User>, Testbed> {</p>
+
+<pre><code>public GetUsersRequest() {
+    super(List&lt;User&gt;.class, Testbed.class);
+}
+
+@Override
+public List&lt;User&gt; loadDataFromNetwork() {
+
+    return getService().getIndex();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Handling a response</h3>
+
+<p>Responses go into each Activity (or Fragment) that&rsquo;s listening for the response. Conceptually, this makes a lot of sense &ndash; requests are general purpose and likely reused throughout the Application, and responses need UI work that&rsquo;s specific to that situation.</p>
+
+<p>Robospice requires some additions to our Activities in order for that to function. The idea of having boilerplate code laying around to support a Library doesn&rsquo;t sound that great, but it&rsquo;s minimal for now. Of course, we&rsquo;re going to be clever developers and add this into an abstract Activity subclass so that we don&rsquo;t have to copy/paste it into all of our Activities down the line.</p>
+
+<p>``` java
+public abstract class SpicedActivity extends Activity {</p>
+
+<pre><code>private SpiceManager spiceManager = new SpiceManager(TestbedSpiceService.class);
+
+@Override
+protected void onStart() {
+    spiceManager.start(this);
+    super.onStart();
+}
+
+@Override
+protected void onStop() {
+    spiceManager.shouldStop();
+    super.onStop();
+}
+
+protected SpiceManager getSpiceManager() {
+    return spiceManager;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>And then we&rsquo;ll add the handling of the response from the service in our Activity that extends the <code>SpicedActivity</code>.</p>
+
+<p>``` java
+public class @TODO extends SpicedActivity {</p>
+
+<pre><code>private GetUsersRequest getUsersRequest;
+
+public final class GetUsersRequestListener implements RequestListener&lt;List&lt;User&gt;&gt; {
+    @Override
+    public void onRequestFailure(SpiceException spiceException) {
+
+    }
+
+    @Override
+    public void onRequestSuccess(final List&lt;User&gt; result) {
+
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Executing a request</h3>
+
+<p>And then we just need to add a line to instantiate and trigger the request and pipe the result to the response.</p>
+
+<p><code>java
+getUsersRequest = new GetUsersRequest();
+getSpiceManager().execute(getUsersRequest, "getUsers", DurationInMillis.ONE_MINUTE, new GetUsersRequestListener());
+</code></p>
+
+<h3>Other features</h3>
+
+<ul>
+<li><p>Cacheing
+  That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</p></li>
+<li><p>Priority
+  Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.</p>
+
+<p>  <code>java
+  getUsersRequest.setPriority(SpiceRequest.PRIORITY_HIGH);
+ </code></p></li>
+<li><p>Cancelling
+  Requests can be cancelled in a few ways. The first is to use the request itself.</p>
+
+<p>  <code>java
+  getUsersRequest.cancel();
+ </code></p>
+
+<p>  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.</p>
+
+<p>  <code>java
+  spiceManager.cancel("getUsers");
+ </code></p></li>
+<li><p>Retrying
+  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.</p>
+
+<p>  <code>java
+  getUsersRequest.setRetryPolicy(YourRetryPolicy);
+ </code></p></li>
+<li><p>Image loading
+  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</p></li>
+</ul>
+
+
+<h3>Thoughts</h3>
+
+<p>That was a lot of work and, possibly, a lot of duplication between Retrofit and Robospice. Let&rsquo;s imagine that the &lsquo;/users&rsquo; route of our API suddenly changes and adds a parameter to toggle some functionality. In this example, we would need to touch <code>public interface Testbed</code>, <code>public class GetUsersRequest</code>, and our Activity. Here be dragons.</p>
+
+<p>On the other hand, it&rsquo;s possible that this work is worth it. The Robospice team seems <a href="https://raw.github.com/octo-online/robospice/master/gfx/RoboSpice-InfoGraphics.png">confident that Services are the way to go</a> for networking request, and the cacheing features are a nice bonus.</p>
+
+<p>The fact that Robospice can work with a variety of Services makes it so their documentation is quite difficult to parse. You&rsquo;ll find some examples designed for Spring, some for OkHTTP, etc. We found that the guides and documentation do not make it clear how to swap between these Services, and can easily lead you astray.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Android Networking Libraries - Part 3: Looking at ion]]></title>
+    <link href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/"/>
+    <updated>2014-01-27T09:00:59-06:00</updated>
+    <id>http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion</id>
+    <content type="html"><![CDATA[<h2>Preamble</h2>
+
+<p>Last time, we managed to get all of our <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">contenders installed</a>. This time, we&rsquo;re going to take a closer look at the syntax and features of one of our contenders, ion.</p>
+
+<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
+
+<h2>Common setup</h2>
+
+<p>POJO
+: A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.
+Gson
+: <a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.
+Jackson
+: <a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
+
+<p>So, we&rsquo;re going to need a POJO for Gson &amp; Jackson to use to represent our User object.</p>
+
+<p>``` java
+public class User {</p>
+
+<pre><code>protected int id;
+protected String username;
+@SerializedName("email");
+protected String emailAddress;
+protected boolean isAdmin;
+
+// Constructor/getters/setters ommitted
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The one line there that might not look familliar is the <code>@SerializedName</code> annotation. If you remember back to <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">part one</a>, our testbed&rsquo;s User object had the property for the email address as <code>email</code>, not <code>emailAddress</code>. This annotation will let us override it.</p>
+
+<p>You&rsquo;ll also remember that the User object had a property called <code>is_admin</code>, not <code>isAdmin</code>. We could fix this in the same way as the email address, but Gson provides a nice way of altering underscore/camelcaseing in a standard way.</p>
+
+<p>``` java
+Gson gson = new GsonBuilder()</p>
+
+<pre><code>.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+.create();
+</code></pre>
+
+<p>```</p>
+
+<p>Of course, there are loads more features, so you should be familliar with <a href="https://sites.google.com/site/gson/gson-user-guide">how to work with Gson</a> as many of the REST libraries we&rsquo;re going to be testing use it.</p>
+
+<p>And just to keep the annotations separate in our minds, we&rsquo;ll create a separate class for Jackson.</p>
+
+<p>``` java
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonAutoDetect
+public class UserJackson {</p>
+
+<pre><code>@JsonProperty
+protected int id;
+@JsonProperty
+protected String username;
+@JsonProperty(value = "email")
+protected String emailAddress;
+@JsonProperty
+protected boolean isAdmin;
+
+// Constructor/getters/setters ommitted
+</code></pre>
+
+<p>}
+```</p>
+
+<p>A few more annotations required there, so let&rsquo;s go through them.
+* <code>@JsonIgnoreProperties(ignoreUnknown=true)</code> simply flags Jackson to say that if there are additional properties in the JSON that aren&rsquo;t a part of this Object to not worry about it. Just ignore them.
+* <code>@JsonAutoDetect</code> signals Jackson that we want it to automatically find mappings between our POJO and JSON.
+* <code>@JsonProperty</code> signals that this property is mapped to JSON. We can also override the name using the <code>value = "foo"</code> syntax.</p>
+
+<p>Same as with GSON, we&rsquo;ll need to apply a strategy to overcome <code>is_admin</code> to <code>isAdmin</code>.</p>
+
+<p><code>java
+ObjectMapper jackson = new ObjectMapper();
+jackson.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
+</code></p>
+
+<h2>ion</h2>
+
+<h3>Preamble</h3>
+
+<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
+
+<h3>Setup</h3>
+
+<p>The one thing that we&rsquo;ll need to do is inject our <code>new GsonBuilder()</code> that we built above.</p>
+
+<p><code>java
+Ion.getDefault(activity).setGson(gson);
+</code></p>
+
+<h3>Executing a request</h3>
+
+<p>ion makes it really nice and easy to just work with the basic string response from the API.</p>
+
+<p>``` java
+Future<String> indexRequest = Ion.with(getApplicationContext(), &ldquo;@TODO&rdquo;)</p>
+
+<pre><code>.asString()
+.setCallback(new FutureCallback&lt;String&gt;() {
+    @Override
+    public void onCompleted(Exception e, String result) {
+    }
+});
+</code></pre>
+
+<p>```</p>
+
+<p>Or as a JSONObject or JSONArray using <code>.asJsonObject()</code> or <code>.asJsonArray()</code>. Or as a POJO using Gson.<br/>
+<em>Note: At the time of writing, ion does not have built-in support for Jackson.</em></p>
+
+<p>``` java
+Future&lt;List<User>> getUsers = Ion.with(getApplicationContext(), &ldquo;@TODO&rdquo;)</p>
+
+<pre><code>.as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
+.setCallback(new FutureCallback&lt;List&lt;User&gt;&gt;() {
+    @Override
+    public void onCompleted(Exception e, List&lt;User&gt; result) {
+    }
+});
+</code></pre>
+
+<p>```</p>
+
+<h3>Other features</h3>
+
+<ul>
+<li><p>Progress
+  ion has some really nice plugins for retrieving the progress of any request</p>
+
+<p>  ``` java
+  indexRequest
+      .progressBar(yourProgressBarHere)
+      .progressDialog(yourProgressDialogHere)
+      .progress(new ProgressCallback() {
+          @Override
+          public void onProgress(int downloaded, int total) {</p>
+
+<pre><code>      }
+  });
+</code></pre>
+
+<p>  ```</p></li>
+<li><p>Image loading</p>
+
+<p>  <code>java
+  Ion.with(yourImageViewHere)
+      .placeHolder(R.drawable.yourPlaceholderGraphicHere)
+      .error(R.drawable.yourErrorGraphicHere)
+      .animateLoad(yourAnimationHere)
+      .animateIn(yourAnimationHere)
+      .centerInside()
+      .resize(100, 200)
+      .transform(MyTransformation)
+      .load("http://example.com/image.png");
+ </code></p>
+
+<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p></li>
+<li><p>Cancelling requests
+  Requests can be canncelled individually.</p>
+
+<p>  <code>java
+  getUsers.cancel();
+ </code></p>
+
+<p>  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+
+<p>  <code>java
+  Ion.getDefault(activity).cancelAll(activity);
+ </code></p>
+
+<p>  Or per-group.</p>
+
+<p>  <code>java
+  Object usersGroup = new Object();
+  Future&lt;List&lt;User&gt;&gt; getUsers = Ion.with(getApplicationContext(), "@TODO")
+      .as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
+      .group(usersGroup)
+      .setCallback(new FutureCallback&lt;List&lt;User&gt;&gt;() {
+          @Override
+          public void onCompleted(Exception e, List&lt;User&gt; result) {
+          }
+      });
+  Ion.getDefault(activity).cancelAll(usersGroup);
+ </code></p></li>
+</ul>
+
+
+<h3>Thoughts</h3>
+
+<p>The syntax for ion is certainly attractive. There is very little boilerplate code involved and there are some very attractive helpers that it gives. Of special note is the ability to &ldquo;drop&rdquo; between parsers so easily &ndash; in a perfect world, your API returns beautiful JSON that is consumed by Gson magically&hellip; in the real world, there are perfectly valid scenarios where API responses aren&rsquo;t JSON at all.</p>
+
+<p>However, the fact that ion works in such a loose fashion may come to hurt a project after a long time. In our legacy code, the fact that AndroidAsync events are so &ldquo;easy&rdquo; to program (and ion events seem even easier) has lead to far too much thinking of functions as scripts and not objects &ndash; the proof of this is copy-pasted versions of AndroidAsync events throughout the sourcecode, instead of thinking of the API as an object the way that most of these other libraries do.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Benchmarking Android Networking Libraries - Part 2: Installing Libraries]]></title>
