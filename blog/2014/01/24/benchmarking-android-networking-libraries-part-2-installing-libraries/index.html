@@ -21,6 +21,7 @@
   <link rel="canonical" href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/table.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Up The Creek" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -110,44 +111,81 @@
 
 <p>The one improvement that I&rsquo;d suggest making is changing the <code>.gitignore</code> file. If you&rsquo;re working in a team all using Android Studio, there are actually a few settings in projects that you might want to share between your developers. Most <code>.gitignore</code> files will have you ignoring the entire <code>/.idea</code> folder, so you&rsquo;ll lose things like code style settings, which, in our mind, make sense to enforce and share amongst your team.</p>
 
-<div><script src='https://gist.github.com/8605514.js'></script>
-<noscript><pre><code># Built application files
-/*/build/
-
-# Crashlytics configuations
-com_crashlytics_export_strings.xml
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Gradle generated files
-.gradle/
-
-# Signing files
-.signing/
-
-# User-specific configurations
-.idea/libraries/
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/.name
-.idea/compiler.xml
-.idea/copyright/profiles_settings.xml
-.idea/encodings.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/scopes/scope_settings.xml
-.idea/vcs.xml
-*.iml
-
-# OS-specific files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db</code></pre></noscript></div>
+<figure class='code'><figcaption><span>One .gitignore to rule them all</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'># Built application files
+</span><span class='line'>/*/build/
+</span><span class='line'>
+</span><span class='line'># Crashlytics configuations
+</span><span class='line'>com_crashlytics_export_strings.xml
+</span><span class='line'>
+</span><span class='line'># Local configuration file (sdk path, etc)
+</span><span class='line'>local.properties
+</span><span class='line'>
+</span><span class='line'># Gradle generated files
+</span><span class='line'>.gradle/
+</span><span class='line'>
+</span><span class='line'># Signing files
+</span><span class='line'>.signing/
+</span><span class='line'>
+</span><span class='line'># User-specific configurations
+</span><span class='line'>.idea/libraries/
+</span><span class='line'>.idea/workspace.xml
+</span><span class='line'>.idea/tasks.xml
+</span><span class='line'>.idea/.name
+</span><span class='line'>.idea/compiler.xml
+</span><span class='line'>.idea/copyright/profiles_settings.xml
+</span><span class='line'>.idea/encodings.xml
+</span><span class='line'>.idea/misc.xml
+</span><span class='line'>.idea/modules.xml
+</span><span class='line'>.idea/scopes/scope_settings.xml
+</span><span class='line'>.idea/vcs.xml
+</span><span class='line'>*.iml
+</span><span class='line'>
+</span><span class='line'># OS-specific files
+</span><span class='line'>.DS_Store
+</span><span class='line'>.DS_Store?
+</span><span class='line'>._*
+</span><span class='line'>.Spotlight-V100
+</span><span class='line'>.Trashes
+</span><span class='line'>ehthumbs.db
+</span><span class='line'>Thumbs.db
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>Installing Retrofit</h3>
@@ -157,7 +195,7 @@ Thumbs.db</code></pre></noscript></div>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
 </span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.squareup.retrofit:retrofit:1.3.0&#39;</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -197,7 +235,7 @@ Thumbs.db</code></pre></noscript></div>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
 </span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.frameworks:volley:master-SNAPSHOT&#39;</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -210,7 +248,7 @@ Thumbs.db</code></pre></noscript></div>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
 </span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.koushikdutta.ion:ion:1.2.1&#39;</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -223,7 +261,7 @@ Thumbs.db</code></pre></noscript></div>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
 </span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.octo.android.robospice:robospice:1.4.2&#39;</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -236,7 +274,7 @@ Thumbs.db</code></pre></noscript></div>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 </pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
-</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
+</span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.android.support:appcompat-v7:+&#39;</span>
 </span><span class='line'>  <span class="n">compile</span> <span class="s1">&#39;com.squareup.picasso:picasso:2.1.1&#39;</span>
 </span><span class='line'><span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -310,7 +348,7 @@ Thumbs.db</code></pre></noscript></div>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The solution was to top it from attempting to compile that module.</p>
+<p>The solution was to stop it from attempting to compile that module.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -326,58 +364,56 @@ Thumbs.db</code></pre></noscript></div>
 <table>
 <thead>
 <tr>
-<th></th>
-<th> Library   </th>
+<th>Library   </th>
 <th align="right"> Score </th>
 <th> Notes                                     </th>
-<th align="right"> Running Tally </th>
+<th align="right"> Running Tally</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td></td>
-<td> Retrofit  </td>
+<td>Retrofit  </td>
 <td align="right">    +1 </td>
 <td>                                           </td>
-<td align="right">             1 |</td>
+<td align="right">             1</td>
 </tr>
 <tr>
-<td></td>
-<td> Volley    </td>
+<td>Volley    </td>
 <td align="right">    -1 </td>
 <td> Not available in modern dependency tools. </td>
-<td align="right">            -1 |</td>
+<td align="right">            -1</td>
 </tr>
 <tr>
-<td></td>
-<td> ion       </td>
+<td>ion       </td>
 <td align="right">    +1 </td>
 <td>                                           </td>
-<td align="right">             1 |</td>
+<td align="right">             1</td>
 </tr>
 <tr>
-<td></td>
-<td> Robospice </td>
+<td>Robospice </td>
 <td align="right">     0 </td>
-<td>                                           </td>
-<td align="right">             0 |</td>
+<td> Generated build errors.                   </td>
+<td align="right">             0</td>
 </tr>
 <tr>
-<td></td>
-<td> Picasso   </td>
+<td>Picasso   </td>
 <td align="right">    +1 </td>
 <td>                                           </td>
-<td align="right">             1 |</td>
+<td align="right">             1</td>
 </tr>
 </tbody>
 </table>
 
 
+<p>Five Android libraries installed with only minimal configuration hell?</p>
+
+<p><img src="http://www.reactionface.info/sites/default/files/images/YvEN9.png" alt="Not bad" /></p>
+
 <h2>Repository</h2>
 
 <p>I&rsquo;ve committed the source code for this example up to <a href="https://github.com/TippingCanoe/network-library-test/releases/tag/step-2">Github</a>.</p>
 
-<h3>Next steps</h3>
+<h2>Next steps</h2>
 
 <p>Next, we&rsquo;re going to look at performing basic REST requests in the different frameworks.</p>
 </div>
@@ -428,6 +464,8 @@ Thumbs.db</code></pre></noscript></div>
         <a class="basic-alignment left" href="/blog/2014/01/24/benchmarking-android-networking-libraries/" title="Previous Post: Benchmarking Android networking libraries - Part 1: Rest API Testbed.">&laquo; Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
       
       
+        <a class="basic-alignment right" href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/" title="Next Post: Benchmarking Android Networking Libraries - Part 3: Looking at ion">Benchmarking Android Networking Libraries - Part 3: Looking at ion &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -448,6 +486,14 @@ Thumbs.db</code></pre></noscript></div>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">Benchmarking Android Networking Libraries - Part 3: Looking at ion</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">Benchmarking Android Networking Libraries - Part 2: Installing Libraries</a>
       </li>
     
@@ -457,10 +503,6 @@ Thumbs.db</code></pre></noscript></div>
     
       <li class="post">
         <a href="/blog/2014/01/24/imager-2-dot-0/">Imager 2.0</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/21/hello-world/">Hello World</a>
       </li>
     
   </ul>

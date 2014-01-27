@@ -1,0 +1,604 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Benchmarking Android Networking Libraries - Part 4: Looking at Robospice - Up The Creek</title>
+  <meta name="author" content="Tipping Canoe">
+
+  
+  <meta name="description" content="Preamble Last time, we took a look at ion. This time, we&rsquo;re going to take a closer look at the syntax and features of another contender, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/table.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Up The Creek" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Up The Creek</a></h1>
+  
+    <h2>Without a <code>Paddle();</code></h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:upthecreek.tippingcanoe.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-27T09:01:14-06:00" pubdate data-updated="true">Jan 27<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Preamble</h2>
+
+<p>Last time, we took a <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">look at ion</a>. This time, we&rsquo;re going to take a closer look at the syntax and features of another contender, Robospice.</p>
+
+<p>After looking at <a href="https://github.com/octo-online/RoboSpice-samples">some samples</a> provided by the Robospice team, it&rsquo;s becoming apparent that Robospice is a bit different than the other contenders. Whereas something like Retrofit is concerned with making requests and processing the results, Robospice is more concerned with the mechanics of where and how those requests take place, and what is done with the responses to make future requests easier. Robospice proposes that <a href="http://developer.android.com/guide/components/services.html">Android Services</a> are where networking should occur, rather than in a simple separate thread.</p>
+
+<p>Robospice can be used with one of many of what it calls <code>SpiceServices</code> and each of those bring support for particular features to the table. Interestingly enough, there&rsquo;s a pre-built <a href="https://github.com/octo-online/robospice/wiki/Retrofit-module"><code>SpiceService</code> for Retrofit</a>, so we&rsquo;re going to jump on that and see what Robospice really brings to the table ontop of Retrofit.</p>
+
+<h2>Common setup</h2>
+
+<p>Setup for our POJO objects is the same as described in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
+
+<h2>Setup</h2>
+
+<p>Stepping back slighty, in <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">part 2</a> we actually installed the wrong version of Robospice. There&rsquo;s a version specifically built for using alongside Retrofit.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">compile</span> <span class="s1">&#39;com.octo.android.robospice:robospice-retrofit:1.4.2&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Since we&rsquo;re using Retrofit under the hood, we&rsquo;ll need to create an interface for our API.<br/>
+<em>Note: This code snippet returns the result directly, as opposed to using a callback. Retrofit uses this as a mechanic to determine wheter to execute the request synchronously (which it does when values are returned) or asynchronously (when values are consumed by a callback). In the Robospice world, the request is already being done in a Service, so there is no need to spawn a separate thread.</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">Testbed</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@GET</span><span class="o">(</span><span class="s">&quot;/&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">getIndex</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@GET</span><span class="o">(</span><span class="s">&quot;/user&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="nf">getUsers</span><span class="o">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@GET</span><span class="o">(</span><span class="s">&quot;/user/{id}&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">User</span> <span class="nf">getUser</span><span class="o">(</span><span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="kt">int</span> <span class="n">userId</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@POST</span><span class="o">(</span><span class="s">&quot;/user&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">User</span> <span class="nf">createUser</span><span class="o">(</span><span class="nd">@Body</span> <span class="n">User</span> <span class="n">user</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@POST</span><span class="o">(</span><span class="s">&quot;/user/{id}&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">User</span> <span class="nf">updateUser</span><span class="o">(</span><span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="kt">int</span> <span class="n">userId</span><span class="o">,</span> <span class="nd">@Body</span> <span class="n">User</span> <span class="n">user</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we&rsquo;ll also need a Robospice Service class to represent our API. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new GsonBuilder()</code> that we made in the common setup of <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestbedSpiceService</span> <span class="kd">extends</span> <span class="n">RetrofitGsonSpiceService</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">BASE_URL</span> <span class="o">=</span> <span class="s">&quot;@TODO&quot;</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">addRetrofitInterface</span><span class="o">(</span><span class="n">Testbed</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">String</span> <span class="nf">getServerUrl</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">BASE_URL</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">Converter</span> <span class="nf">createConverter</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">new</span> <span class="nf">GsonConverter</span><span class="o">(</span><span class="n">gson</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note we can also use our Jackson converter with Robospice via Retrofit. Here&rsquo;s how to set it up, but we&rsquo;ll be omitting these examples for the moment. The overriden <code>protected Converter createConverter()</code> method is used to inject the <code>new ObjectMapper()</code> that we made in the common setup of <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">part 3</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestbedSpiceServiceJackson</span> <span class="kd">extends</span> <span class="n">RetrofitJackson2SpiceService</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">final</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">BASE_URL</span> <span class="o">=</span> <span class="s">&quot;@TODO&quot;</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">addRetrofitInterface</span><span class="o">(</span><span class="n">Testbed</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">String</span> <span class="nf">getServerUrl</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">BASE_URL</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">Converter</span> <span class="nf">createConverter</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">new</span> <span class="nf">JacksonConverter</span><span class="o">(</span><span class="n">jackson</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That new service will need to be declard in our <code>AndroidManifest.xml</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;service</span>
+</span><span class='line'>  <span class="na">android:name=</span><span class="s">&quot;TestbedSpiceService&quot;</span>
+</span><span class='line'>  <span class="na">android:exported=</span><span class="s">&quot;false&quot;</span> <span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Forming a request</h2>
+
+<p>Robospice uses classes to represent requests and responses, so we&rsquo;ll need to create one for each pair.</p>
+
+<p>Requests go into their own Class files.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">GetUsersRequest</span> <span class="kd">extends</span> <span class="n">RetrofitSpiceRequest</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;,</span> <span class="n">Testbed</span><span class="o">&gt;</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">GetUsersRequest</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;.</span><span class="na">class</span><span class="o">,</span> <span class="n">Testbed</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="nf">loadDataFromNetwork</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">return</span> <span class="nf">getService</span><span class="o">().</span><span class="na">getIndex</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Handling a response</h2>
+
+<p>Responses go into each Activity (or Fragment) that&rsquo;s listening for the response. Conceptually, this makes a lot of sense &ndash; requests are general purpose and likely reused throughout the Application, and responses need UI work that&rsquo;s specific to that situation.</p>
+
+<p>Robospice requires some additions to our Activities in order for that to function. The idea of having boilerplate code laying around to support a Library doesn&rsquo;t sound that great, but it&rsquo;s minimal for now. Of course, we&rsquo;re going to be clever developers and add this into an abstract Activity subclass so that we don&rsquo;t have to copy/paste it into all of our Activities down the line.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">SpicedActivity</span> <span class="kd">extends</span> <span class="n">Activity</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">SpiceManager</span> <span class="n">spiceManager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpiceManager</span><span class="o">(</span><span class="n">TestbedSpiceService</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onStart</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">spiceManager</span><span class="o">.</span><span class="na">start</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onStart</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onStop</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">spiceManager</span><span class="o">.</span><span class="na">shouldStop</span><span class="o">();</span>
+</span><span class='line'>        <span class="kd">super</span><span class="o">.</span><span class="na">onStop</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">protected</span> <span class="n">SpiceManager</span> <span class="nf">getSpiceManager</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">spiceManager</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And then we&rsquo;ll add the handling of the response from the service in our Activity that extends the <code>SpicedActivity</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="err">@</span><span class="nc">TODO</span> <span class="kd">extends</span> <span class="n">SpicedActivity</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">GetUsersRequest</span> <span class="n">getUsersRequest</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">GetUsersRequestListener</span> <span class="kd">implements</span> <span class="n">RequestListener</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onRequestFailure</span><span class="o">(</span><span class="n">SpiceException</span> <span class="n">spiceException</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onRequestSuccess</span><span class="o">(</span><span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Executing a request</h2>
+
+<p>And then we just need to add a line to instantiate and trigger the request and pipe the result to the response.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsersRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GetUsersRequest</span><span class="o">();</span>
+</span><span class='line'><span class="n">getSpiceManager</span><span class="o">().</span><span class="na">execute</span><span class="o">(</span><span class="n">getUsersRequest</span><span class="o">,</span> <span class="s">&quot;getUsers&quot;</span><span class="o">,</span> <span class="n">DurationInMillis</span><span class="o">.</span><span class="na">ONE_MINUTE</span><span class="o">,</span> <span class="k">new</span> <span class="n">GetUsersRequestListener</span><span class="o">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Other features</h2>
+
+<h4>Cacheing</h4>
+
+<p>That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</p>
+
+<h4>Priority</h4>
+
+<p>Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsersRequest</span><span class="o">.</span><span class="na">setPriority</span><span class="o">(</span><span class="n">SpiceRequest</span><span class="o">.</span><span class="na">PRIORITY_HIGH</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Cancelling</h4>
+
+<p>Requests can be cancelled in a few ways. The first is to use the request itself.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsersRequest</span><span class="o">.</span><span class="na">cancel</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">spiceManager</span><span class="o">.</span><span class="na">cancel</span><span class="o">(</span><span class="s">&quot;getUsers&quot;</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Retrying</h4>
+
+<p>If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsersRequest</span><span class="o">.</span><span class="na">setRetryPolicy</span><span class="o">(</span><span class="n">YourRetryPolicy</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Image loading</h4>
+
+<p>Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</p>
+
+<h2>Thoughts</h2>
+
+<p>That was a lot of work and, possibly, a lot of duplication between Retrofit and Robospice. Let&rsquo;s imagine that the &lsquo;/users&rsquo; route of our API suddenly changes and adds a parameter to toggle some functionality. In this example, we would need to touch <code>public interface Testbed</code>, <code>public class GetUsersRequest</code>, and our Activity. Here be dragons.</p>
+
+<p>On the other hand, it&rsquo;s possible that this work is worth it. The Robospice team seems <a href="https://raw.github.com/octo-online/robospice/master/gfx/RoboSpice-InfoGraphics.png">confident that Services are the way to go</a> for networking request, and the cacheing features are a nice bonus.</p>
+
+<p>The fact that Robospice can work with a variety of Services makes it so their documentation is quite difficult to parse. You&rsquo;ll find some examples designed for Spring, some for OkHTTP, etc. We found that the guides and documentation do not make it clear how to swap between these Services, and can easily lead you astray.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Iain Connor</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-27T09:01:14-06:00" pubdate data-updated="true">Jan 27<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/experiments/'>experiments</a>, <a class='category' href='/blog/categories/hack-day/'>hack day</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/" data-via="" data-counturl="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/" title="Previous Post: Benchmarking Android Networking Libraries - Part 3: Looking at ion">&laquo; Benchmarking Android Networking Libraries - Part 3: Looking at ion</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">Benchmarking Android Networking Libraries - Part 3: Looking at ion</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">Benchmarking Android Networking Libraries - Part 2: Installing Libraries</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries/">Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/imager-2-dot-0/">Imager 2.0</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/TippingCanoe">@TippingCanoe</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'TippingCanoe',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tipping Canoe -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'tc-upthecreek';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/';
+        var disqus_url = 'http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

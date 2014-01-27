@@ -1,0 +1,529 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Benchmarking Android Networking Libraries - Part 3: Looking at ion - Up The Creek</title>
+  <meta name="author" content="Tipping Canoe">
+
+  
+  <meta name="description" content="Preamble Last time, we managed to get all of our contenders installed. This time, we&rsquo;re going to take a closer look at the syntax and features &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/table.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Up The Creek" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  
+
+</head>
+
+<body   class="collapse-sidebar sidebar-footer" >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Up The Creek</a></h1>
+  
+    <h2>Without a <code>Paddle();</code></h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:upthecreek.tippingcanoe.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Benchmarking Android Networking Libraries - Part 3: Looking at Ion</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-27T09:00:59-06:00" pubdate data-updated="true">Jan 27<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Preamble</h2>
+
+<p>Last time, we managed to get all of our <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">contenders installed</a>. This time, we&rsquo;re going to take a closer look at the syntax and features of one of our contenders, ion.</p>
+
+<p>ion comes from the creator of <a href="https://github.com/koush/AndroidAsync">AnroidAsync</a> and uses that library for its low-level networking. This is actually the library that we&rsquo;re currently using in our legacy Applications.</p>
+
+<h2>Common setup</h2>
+
+<h4>POJO</h4>
+
+<p>A POJO is, simply, a plain-old-java-object. These are just your standard, existing business objects.</p>
+
+<h4>Gson</h4>
+
+<p><a href="https://code.google.com/p/google-gson/">Gson</a> is a library used to convert between POJOs and JSON.</p>
+
+<h4>Jackson</h4>
+
+<p><a href="https://github.com/FasterXML/jackson">Jackson</a> is an alternative library used to convert between POJOs and JSON. <a href="http://blaazinsoftwaretech.blogspot.ca/2013/08/jackson-2-vs-gson-performance-comparison.html">Some</a> <a href="http://daniel-codes.blogspot.ca/2013/12/streaming-json-parsing-performance-test.html">developers</a> report it being much faster than GSON, so we&rsquo;ll be testing both out.</p>
+
+<p>So, we&rsquo;re going to need a POJO for Gson &amp; Jackson to use to represent our User object.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">User</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">int</span> <span class="n">id</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">username</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@SerializedName</span><span class="o">(</span><span class="s">&quot;email&quot;</span><span class="o">);</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">emailAddress</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">boolean</span> <span class="n">isAdmin</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Constructor/getters/setters ommitted</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The one line there that might not look familliar is the <code>@SerializedName</code> annotation. If you remember back to <a href="http://upthecreek.tippingcanoe.com/blog/2014/01/24/benchmarking-android-networking-libraries/">part one</a>, our testbed&rsquo;s User object had the property for the email address as <code>email</code>, not <code>emailAddress</code>. This annotation will let us override it.</p>
+
+<p>You&rsquo;ll also remember that the User object had a property called <code>is_admin</code>, not <code>isAdmin</code>. We could fix this in the same way as the email address, but Gson provides a nice way of altering underscore/camelcaseing in a standard way.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Gson</span> <span class="n">gson</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GsonBuilder</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setFieldNamingPolicy</span><span class="o">(</span><span class="n">FieldNamingPolicy</span><span class="o">.</span><span class="na">LOWER_CASE_WITH_UNDERSCORES</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">create</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Of course, there are loads more features, so you should be familliar with <a href="https://sites.google.com/site/gson/gson-user-guide">how to work with Gson</a> as many of the REST libraries we&rsquo;re going to be testing use it.</p>
+
+<p>And just to keep the annotations separate in our minds, we&rsquo;ll create a separate class for Jackson.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="nd">@JsonIgnoreProperties</span><span class="o">(</span><span class="n">ignoreUnknown</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+</span><span class='line'><span class="nd">@JsonAutoDetect</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserJackson</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">int</span> <span class="n">id</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">username</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span><span class="o">(</span><span class="n">value</span> <span class="o">=</span> <span class="s">&quot;email&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="n">String</span> <span class="n">emailAddress</span><span class="o">;</span>
+</span><span class='line'>  <span class="nd">@JsonProperty</span>
+</span><span class='line'>  <span class="kd">protected</span> <span class="kt">boolean</span> <span class="n">isAdmin</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Constructor/getters/setters ommitted</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A few more annotations required there, so let&rsquo;s go through them.
+* <code>@JsonIgnoreProperties(ignoreUnknown=true)</code> simply flags Jackson to say that if there are additional properties in the JSON that aren&rsquo;t a part of this Object to not worry about it. Just ignore them.
+* <code>@JsonAutoDetect</code> signals Jackson that we want it to automatically find mappings between our POJO and JSON.
+* <code>@JsonProperty</code> signals that this property is mapped to JSON. We can also override the name using the <code>value = "foo"</code> syntax.</p>
+
+<p>Same as with GSON, we&rsquo;ll need to apply a strategy to overcome <code>is_admin</code> to <code>isAdmin</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">ObjectMapper</span> <span class="n">jackson</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ObjectMapper</span><span class="o">();</span>
+</span><span class='line'><span class="n">jackson</span><span class="o">.</span><span class="na">setPropertyNamingStrategy</span><span class="o">(</span><span class="n">PropertyNamingStrategy</span><span class="o">.</span><span class="na">CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Setup</h2>
+
+<p>The one thing that we&rsquo;ll need to do is inject our <code>new GsonBuilder()</code> that we built above.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">getDefault</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">setGson</span><span class="o">(</span><span class="n">gson</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Executing a request</h2>
+
+<p>ion makes it really nice and easy to just work with the basic string response from the API.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">indexRequest</span> <span class="o">=</span> <span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">&quot;@TODO&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">asString</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setCallback</span><span class="o">(</span><span class="k">new</span> <span class="n">FutureCallback</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCompleted</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">,</span> <span class="n">String</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or as a JSONObject or JSONArray using <code>.asJsonObject()</code> or <code>.asJsonArray()</code>. Or as a POJO using Gson.<br/>
+<em>Note: At the time of writing, ion does not have built-in support for Jackson.</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Future</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="n">getUsers</span> <span class="o">=</span> <span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">&quot;@TODO&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">as</span><span class="o">(</span><span class="k">new</span> <span class="n">TypeToken</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;(){})</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setCallback</span><span class="o">(</span><span class="k">new</span> <span class="n">FutureCallback</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCompleted</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Other features</h2>
+
+<h4>Progress</h4>
+
+<p>ion has some really nice plugins for retrieving the progress of any request.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">indexRequest</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">progressBar</span><span class="o">(</span><span class="n">yourProgressBarHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">progressDialog</span><span class="o">(</span><span class="n">yourProgressDialogHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">progress</span><span class="o">(</span><span class="k">new</span> <span class="n">ProgressCallback</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onProgress</span><span class="o">(</span><span class="kt">int</span> <span class="n">downloaded</span><span class="o">,</span> <span class="kt">int</span> <span class="n">total</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h4>Image loading</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">yourImageViewHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">placeHolder</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">yourPlaceholderGraphicHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">drawable</span><span class="o">.</span><span class="na">yourErrorGraphicHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">animateLoad</span><span class="o">(</span><span class="n">yourAnimationHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">animateIn</span><span class="o">(</span><span class="n">yourAnimationHere</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">centerInside</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">resize</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="mi">200</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">transform</span><span class="o">(</span><span class="n">MyTransformation</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="s">&quot;http://example.com/image.png&quot;</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></p>
+
+<h4>Cancelling requests</h4>
+
+<p>Requests can be canncelled individually.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">getUsers</span><span class="o">.</span><span class="na">cancel</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">getDefault</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">cancelAll</span><span class="o">(</span><span class="n">activity</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or per-group.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Object</span> <span class="n">usersGroup</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">();</span>
+</span><span class='line'><span class="n">Future</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="n">getUsers</span> <span class="o">=</span> <span class="n">Ion</span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">&quot;@TODO&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">as</span><span class="o">(</span><span class="k">new</span> <span class="n">TypeToken</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;(){})</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">group</span><span class="o">(</span><span class="n">usersGroup</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">.</span><span class="na">setCallback</span><span class="o">(</span><span class="k">new</span> <span class="n">FutureCallback</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCompleted</span><span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">});</span>
+</span><span class='line'><span class="n">Ion</span><span class="o">.</span><span class="na">getDefault</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">cancelAll</span><span class="o">(</span><span class="n">usersGroup</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Thoughts</h2>
+
+<p>The syntax for ion is certainly attractive. There is very little boilerplate code involved and there are some very attractive helpers that it gives. Of special note is the ability to &ldquo;drop&rdquo; between parsers so easily &ndash; in a perfect world, your API returns beautiful JSON that is consumed by Gson magically&hellip; in the real world, there are perfectly valid scenarios where API responses aren&rsquo;t JSON at all.</p>
+
+<p>However, the fact that ion works in such a loose fashion may come to hurt a project after a long time. In our legacy code, the fact that AndroidAsync events are so &ldquo;easy&rdquo; to program (and ion events seem even easier) has lead to far too much thinking of functions as scripts and not objects &ndash; the proof of this is copy-pasted versions of AndroidAsync events throughout the sourcecode, instead of thinking of the API as an object the way that most of these other libraries do.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Iain Connor</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-27T09:00:59-06:00" pubdate data-updated="true">Jan 27<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/experiments/'>experiments</a>, <a class='category' href='/blog/categories/hack-day/'>hack day</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/" data-via="" data-counturl="http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/" title="Previous Post: Benchmarking Android Networking Libraries - Part 2: Installing Libraries">&laquo; Benchmarking Android Networking Libraries - Part 2: Installing Libraries</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/" title="Next Post: Benchmarking Android Networking Libraries - Part 4: Looking at Robospice">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-4-looking-at-robospice/">Benchmarking Android Networking Libraries - Part 4: Looking at Robospice</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/">Benchmarking Android Networking Libraries - Part 3: Looking at ion</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries-part-2-installing-libraries/">Benchmarking Android Networking Libraries - Part 2: Installing Libraries</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/benchmarking-android-networking-libraries/">Benchmarking Android networking libraries - Part 1: Rest API Testbed.</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/24/imager-2-dot-0/">Imager 2.0</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/TippingCanoe">@TippingCanoe</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'TippingCanoe',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tipping Canoe -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> | Themed with <a href="https://github.com/lucaslew/whitespace">Whitespace</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'tc-upthecreek';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/';
+        var disqus_url = 'http://upthecreek.tippingcanoe.com/blog/2014/01/27/benchmarking-android-networking-libraries-part-3-looking-at-ion/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
