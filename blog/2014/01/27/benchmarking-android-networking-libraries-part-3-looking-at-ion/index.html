@@ -245,9 +245,10 @@ Jackson
 <h2>Other features</h2>
 
 <ul>
-<li><p>Progress
-  ion has some really nice plugins for retrieving the progress of any request
-  &#8220;` java
+<li><p><strong>Progress</strong>
+  ion has some really nice plugins for retrieving the progress of any request</p>
+
+<p>  &#8220;` java
   indexRequest
       .progressBar(yourProgressBarHere)
       .progressDialog(yourProgressDialogHere)
@@ -260,8 +261,9 @@ Jackson
 </code></pre>
 
 <p>  &#8220;`</p></li>
-<li>Image loading
-  <code>java
+<li><p><strong>Image loading</strong></p>
+
+<p>  <code>java
   Ion.with(yourImageViewHere)
       .placeHolder(R.drawable.yourPlaceholderGraphicHere)
       .error(R.drawable.yourErrorGraphicHere)
@@ -271,19 +273,25 @@ Jackson
       .resize(100, 200)
       .transform(MyTransformation)
       .load("http://example.com/image.png");
- </code>
-  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.java"><code>Transform</code></a></li>
-<li>Cancelling requests
-  Requests can be canncelled individually.
-  <code>java
+ </code></p>
+
+<p>  The <code>MyTransformation</code> must be an implementation of <a href="https://github.com/koush/ion/blob/master/ion/src/com/koushikdutta/ion/bitmap/Transform.jav%0A%20%20a"><code>Transform</code></a></p></li>
+<li><p><strong>Cancelling requests</strong>
+  Requests can be canncelled individually.</p>
+
+<p>  <code>java
   getUsers.cancel();
- </code>
-  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.
-  <code>java
+ </code></p>
+
+<p>  Or per-activity. Doing this call in the <code>onStop()</code> of an Activity makes a lot of sense.</p>
+
+<p>  <code>java
   Ion.getDefault(activity).cancelAll(activity);
- </code>
-  Or per-group.
-  <code>java
+ </code></p>
+
+<p>  Or per-group.</p>
+
+<p>  <code>java
   Object usersGroup = new Object();
   Future&lt;List&lt;User&gt;&gt; getUsers = Ion.with(getApplicationContext(), "@TODO")
       .as(new TypeToken&lt;List&lt;User&gt;&gt;(){})
@@ -294,7 +302,7 @@ Jackson
           }
       });
   Ion.getDefault(activity).cancelAll(usersGroup);
- </code></li>
+ </code></p></li>
 </ul>
 
 

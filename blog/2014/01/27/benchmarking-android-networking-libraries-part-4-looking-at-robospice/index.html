@@ -375,29 +375,33 @@
 <h2>Other features</h2>
 
 <ul>
-<li><p>Cacheing
-  That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</p></li>
-<li><p>Priority
+<li><strong>Cacheing</strong>
+  That last line has a couple of neat features. First, we can set a key by which to recognize future requests of this type in a cache (we&rsquo;re just using a dumb string <code>"getUsers"</code>, but you could implement your own mechasim of course) and second, we can state how long that cache is valid for. In this example, if we were to execute the same request 2 times within a minute, the n+1 requests wouldn&rsquo;t actually trigger any network activity.</li>
+<li><strong>Priority</strong>
   Requests can have a priority attached to them, and Robospice will attempt to execute higher priority ones first.
   <code>java
   getUsersRequest.setPriority(SpiceRequest.PRIORITY_HIGH);
- </code></p></li>
-<li>Cancelling
-  Requests can be cancelled in a few ways. The first is to use the request itself.
-  <code>java
+ </code></li>
+<li><p><strong>Cancelling</strong>
+  Requests can be cancelled in a few ways. The first is to use the request itself.</p>
+
+<p>  <code>java
   getUsersRequest.cancel();
- </code>
-  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.
-  <code>java
+ </code></p>
+
+<p>  But that could be suboptimal because the Object may have left your context. A better way is by using the cache key.</p>
+
+<p>  <code>java
   spiceManager.cancel("getUsers");
- </code></li>
-<li>Retrying
-  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.
-  <code>java
+ </code></p></li>
+<li><p><strong>Retrying</strong>
+  If requests fail (for example, the user&rsquo;s network connectivity drops in the middle of sending a request), Robospice can automatically queue those requests again. A default <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/DefaultRetryPolicy.java"><code>DefaultRetryPolicy</code></a> exists for requests by default, but you can implement your own by implementing <a href="https://github.com/octo-online/robospice/blob/release/robospice-core-parent/robospice/src/main/java/com/octo/android/robospice/retry/RetryPolicy.java"><code>RetryPolicy</code></a>.</p>
+
+<p>  <code>java
   getUsersRequest.setRetryPolicy(YourRetryPolicy);
- </code></li>
-<li>Image loading
-  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</li>
+ </code></p></li>
+<li><p><strong>Image loading</strong>
+  Robospice <em>does</em> support downloading images, but does so by requiring you to use a <a href="https://github.com/octo-online/robospice/wiki/UI-SpiceList-module"><code>UI SpiceList</code></a> that imposes several requirements on your ListViews/Adapters. After trying to work with the sample, we decided this implementation was not worth persuing.</p></li>
 </ul>
 
 
